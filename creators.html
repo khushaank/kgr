@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Creators | KGR Archive - The Global Research Database</title>
+    <link rel="icon" type="image/png" href="images/KGR.png" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+
+  <body class="about-main-wrapper">
+    <div id="header-hook"></div>
+
+    <main class="container">
+      <section class="hero-visual">
+        <div class="hero-badge">SYSTEM ARCHITECTS</div>
+        <h1 class="hero-title">The Minds Behind<br />the Archive</h1>
+        <p class="subtitle" style="max-width: 600px; margin: 0 auto">
+          KGR Archive is engineered by a specialized collective dedicated to
+          open-source scientific integrity and decentralized data sovereignty.
+        </p>
+      </section>
+
+      <section class="info-section">
+        <div
+          class="charter-box"
+          style="display: flex; gap: 40px; align-items: center"
+        >
+          <div style="flex-shrink: 0">
+            <img
+              src="https://ui-avatars.com/api/?name=Khushaank+Gupta&background=3ea6ff&color=fff&size=128"
+              alt="Khushaank Gupta"
+              style="
+                border-radius: 50%;
+                border: 2px solid var(--accent);
+                width: 150px;
+                height: 150px;
+              "
+            />
+          </div>
+          <div>
+            <h2 style="font-size: 2rem; margin-bottom: 10px">
+              Khushaank Gupta
+            </h2>
+            <p class="mono" style="color: var(--accent); margin-bottom: 15px">
+              Lead Architect & Full-Stack Engineer
+            </p>
+            <p>
+              The visionary behind KGR-Researches (b2bindustrial.in). Khushaank
+              designed the core 128-bit encrypted database infrastructure and
+              the RAG-AI integration that powers the archive's discovery engine.
+            </p>
+            <div style="margin-top: 20px; display: flex; gap: 15px">
+              <a
+                href="mailto:khushaankgupta@gmail.com"
+                class="material-icons"
+                style="color: #888; text-decoration: none"
+                >email</a
+              >
+              <span class="material-icons" style="color: #888">code</span>
+              <span class="material-icons" style="color: #888">terminal</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-section">
+        <h2 class="section-title">Development Pillars</h2>
+        <div class="charter-grid">
+          <div class="charter-card">
+            <span class="material-icons" style="color: var(--accent)"
+              >storage</span
+            >
+            <h3 style="margin: 20px 0 10px">Infrastructure Team</h3>
+            <p>
+              Responsible for the PostgreSQL backend, real-time Supabase
+              synchronization, and data persistence layers.
+            </p>
+          </div>
+          <div class="charter-card">
+            <span class="material-icons" style="color: var(--accent)"
+              >psychology</span
+            >
+            <h3 style="margin: 20px 0 10px">AI Research Group</h3>
+            <p>
+              Developing the Research Assistant algorithms and Markdown-to-Graph
+              visualization engines.
+            </p>
+          </div>
+          <div class="charter-card">
+            <span class="material-icons" style="color: var(--accent)"
+              >brush</span
+            >
+            <h3 style="margin: 20px 0 10px">UI/UX Collective</h3>
+            <p>
+              Crafting the "Laboratory Dark" interface and ensuring
+              cross-platform responsiveness for global researchers.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-section" style="text-align: center">
+        <h2 style="margin-bottom: 20px">Open Source Contribution</h2>
+        <p style="max-width: 800px; margin: 0 auto; color: #888">
+          KGR Archive believes in the transparency of its own code. Our
+          development roadmap is public, allowing researchers from around the
+          world to suggest security improvements and feature integrations.
+        </p>
+      </section>
+    </main>
+
+    <div id="footer-hook"></div>
+
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

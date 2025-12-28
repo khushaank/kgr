@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Contact Us | KGR Archive</title>
+    <link rel="icon" type="image/png" href="images/KGR.png" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+
+  <body class="about-main-wrapper">
+    <div id="header-hook"></div>
+
+    <main class="container">
+      <section class="hero-visual">
+        <div class="hero-badge">COMMUNICATIONS GATEWAY</div>
+        <h1 class="hero-title">Connect with the<br />Archive Team</h1>
+        <p class="subtitle" style="max-width: 600px; margin: 0 auto">
+          Have questions regarding data sovereignty, laboratory access, or
+          technical support? Our administrators are here to assist.
+        </p>
+      </section>
+
+      <section class="info-section">
+        <div class="grid-split">
+          <div>
+            <h2 style="font-size: 2.5rem; margin-bottom: 20px">
+              Direct Channels
+            </h2>
+            <p>
+              The KGR Archive is managed by a global collective of researchers.
+              For the fastest response, please utilize our digital identity
+              verification channels or email us directly.
+            </p>
+            <ul
+              class="pill-list"
+              style="flex-direction: column; align-items: flex-start"
+            >
+              <li>
+                <span class="material-icons">alternate_email</span>
+                <strong>khushaankgupta@gmail.com</strong>
+              </li>
+              <li>
+                <span class="material-icons">code</span>
+                GitHub: /khushaank
+              </li>
+              <li>
+                <span class="material-icons">public</span>
+                Global Access Nodes: Online
+              </li>
+            </ul>
+          </div>
+
+          <div class="charter-box" style="margin-top: 0">
+            <h3>Send a Transmission</h3>
+            <form id="contact-form" style="margin-top: 20px">
+              <div class="input-group">
+                <label>RESEARCHER NAME</label>
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  class="studio-input"
+                  style="width: 100%"
+                  required
+                />
+              </div>
+              <div class="input-group" style="margin-top: 15px">
+                <label>SECURE EMAIL</label>
+                <input
+                  type="email"
+                  placeholder="email@institution.edu"
+                  class="studio-input"
+                  style="width: 100%"
+                  required
+                />
+              </div>
+              <div class="input-group" style="margin-top: 15px">
+                <label>MESSAGE / INQUIRY</label>
+                <textarea
+                  placeholder="Describe your request..."
+                  class="studio-input"
+                  style="width: 100%; height: 120px; resize: none"
+                  required
+                ></textarea>
+              </div>
+              <button
+                type="submit"
+                class="primary-btn"
+                style="width: 100%; margin-top: 20px; border-radius: 8px"
+              >
+                Authorize Transmission
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-section">
+        <h2 class="section-title">Support Pillars</h2>
+        <div class="charter-grid">
+          <div class="charter-card">
+            <span class="material-icons" style="color: var(--accent)"
+              >security</span
+            >
+            <h3 style="margin: 20px 0 10px">Technical Support</h3>
+            <p>
+              Assistance with MFA verification, account recovery, or researcher
+              ID synchronization issues.
+            </p>
+          </div>
+          <div class="charter-card">
+            <span class="material-icons" style="color: var(--accent)"
+              >science</span
+            >
+            <h3 style="margin: 20px 0 10px">Research Inquiries</h3>
+            <p>
+              Questions regarding archived findings, peer-review transparency,
+              or dataset exports.
+            </p>
+          </div>
+          <div class="charter-card">
+            <span class="material-icons" style="color: var(--accent)"
+              >business</span
+            >
+            <h3 style="margin: 20px 0 10px">Partnerships</h3>
+            <p>
+              Institutional API access requests and university laboratory
+              integration programs.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="footer-hook"></div>
+
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+    <script>
+      // Simple UI feedback for form submission
+      document.getElementById("contact-form").onsubmit = (e) => {
+        e.preventDefault();
+        alert(
+          "Transmission sent. A KGR administrator will verify and respond shortly."
+        );
+        e.target.reset();
+      };
+    </script>
+  </body>
+</html>

@@ -1,100 +1,160 @@
 /**
- * create.js - Research Studio Editor (Source & Formatted Modes)
+ * create.js - KGR Archive Research Studio Editor
+ * Version: 2.1.0 (Integrated)
+ * Description: Handles dual-mode editing, AI suggestions, dynamic graphing,
+ * metadata management, and Supabase persistence.
  */
+
+// --- 1. GLOBAL CONSTANTS & STATE ---
 const supabaseClient = window.supabaseClient;
 let selectedImageFile = null;
 let tags = [];
 let coAuthors = [];
 const MAX_TAGS = 3;
+let currentMode = "source"; // "source" (Markdown) or "formatted" (Rich Text)
+let autosaveTimeout = null;
+let isNavigatingAway = false;
 
-// 1. Initialization & Auth Guard
+// --- 2. INITIALIZATION & AUTH GUARD ---
 window.addEventListener("DOMContentLoaded", async () => {
+  // Check Authentication Status
   const {
     data: { user },
     error,
   } = await supabaseClient.auth.getUser();
 
   if (!user || error) {
+    console.error("Auth Failure:", error);
     window.location.href = "auth.html";
     return;
   }
 
   window.currentUser = user;
+  console.log("KGR Studio Initialized for:", user.email);
 
-  // Check if editing existing blog
-  const urlParams = new URLSearchParams(window.location.search);
-  const blogId = urlParams.get('id');
-  if (blogId) {
-    await loadBlogForEditing(blogId, user.id);
-  }
-
+  // Initial UI Setups
   setupImagePreview();
   setupTagSystem();
   setupCollaboratorSystem();
   setupDragDrop();
   setupAutosave(user.id);
+  setupAISuggestionEngine();
 
-  // Set default view
+  // Check if we are in Edit Mode (via URL ID)
+  const urlParams = new URLSearchParams(window.location.search);
+  const blogId = urlParams.get("id");
+
+  if (blogId) {
+    await loadBlogForEditing(blogId, user.id);
+
+    // Auto-save for EDIT MODE
+    window.addEventListener("beforeunload", () => {
+      if (!isNavigatingAway) {
+        handleUpdate(blogId, "draft", user.id);
+      }
+    });
+  } else {
+    initCreateMode(user);
+
+    // Auto-save for CREATE MODE
+    window.addEventListener("beforeunload", () => {
+      if (!isNavigatingAway) {
+        handleSubmission("draft", user);
+      }
+    });
+  }
+
   window.switchMode("source");
-
-  // Action Buttons
-  document.getElementById("draft-btn").onclick = () =>
-    handleSubmission("draft", user);
-  document.getElementById("publish-btn").onclick = () =>
-    handleSubmission("published", user);
-
-  // Auto save on close
-  window.addEventListener('beforeunload', () => {
-    handleSubmission('draft', user);
-  });
 });
 
-// Load existing blog for editing
+/**
+ * Sets up buttons and event listeners for creating a new post
+ */
+function initCreateMode(user) {
+  const draftBtn = document.getElementById("draft-btn");
+  const publishBtn = document.getElementById("publish-btn");
+
+  draftBtn.onclick = () => handleSubmission("draft", user);
+  publishBtn.onclick = () => handleSubmission("published", user);
+
+  // Auto-save-on-close logic (creates a draft if user leaves)
+  window.addEventListener("beforeunload", (e) => {
+    const title = document.getElementById("title").value;
+    const content = document.getElementById("content").value;
+    if (title.length > 5 || content.length > 10) {
+      handleSubmission("draft", user);
+    }
+  });
+}
+
+// --- 3. PERSISTENCE LAYER (LOAD/EDIT/UPDATE) ---
+
+/**
+ * Fetches blog data from Supabase and populates the editor
+ */
 async function loadBlogForEditing(blogId, userId) {
+  console.log(`Loading archival record: ${blogId}`);
   try {
     const { data: blog, error } = await supabaseClient
-      .from('blogs')
-      .select('*')
-      .eq('id', blogId)
-      .eq('user_id', userId)
+      .from("blogs")
+      .select("*")
+      .eq("id", blogId)
+      .eq("user_id", userId)
       .single();
 
     if (error || !blog) {
-      alert('Blog not found or access denied.');
-      window.location.href = 'contributions.html';
+      alert("Database Error: Record not found or access restricted.");
+      window.location.href = "contributions.html";
       return;
     }
 
-    // Populate the form
-    document.getElementById('title').value = blog.title || '';
-    document.getElementById('content').value = blog.content || '';
-    document.getElementById('markdown-preview').innerHTML = blog.content || '';
+    // 1. Populate Core Fields
+    document.getElementById("title").value = blog.title || "";
+    document.getElementById("content").value = blog.content || "";
 
-    // Set tags
+    // 2. Populate Metadata Arrays
     tags = blog.tags || [];
-    updateTagDisplay();
+    coAuthors = blog.co_authors || [];
 
-    // Set image if exists
+    // 3. Trigger UI Re-renders (Using window scope for global accessibility)
+    if (window.updateTagDisplay) window.updateTagDisplay();
+    if (window.updateAuthorDisplay) window.updateAuthorDisplay();
+
+    // 4. Handle Thumbnail Preview
     if (blog.image_url) {
-      selectedImageFile = null; // Reset file
-      document.getElementById('image-preview').src = blog.image_url;
-      document.getElementById('image-preview').style.display = 'block';
-      document.getElementById('image-upload-area').style.display = 'none';
+      const preview = document.getElementById("image-preview");
+      const uploadArea = document.getElementById("image-upload-area");
+      const icon = document.querySelector(".thumbnail-box .material-icons");
+
+      preview.src = blog.image_url;
+      preview.style.display = "block";
+      if (icon) icon.style.display = "none";
+      if (uploadArea) uploadArea.classList.add("has-image");
     }
 
-    // Update submit buttons to update instead of create
-    document.getElementById("draft-btn").onclick = () => handleUpdate(blogId, "draft", userId);
-    document.getElementById("publish-btn").onclick = () => handleUpdate(blogId, "published", userId);
+    // 5. Override Button Logic for Update vs Insert
+    const draftBtn = document.getElementById("draft-btn");
+    const publishBtn = document.getElementById("publish-btn");
 
+    draftBtn.innerHTML =
+      '<span class="material-icons">save</span> Update Draft';
+    publishBtn.innerHTML =
+      '<span class="material-icons">publish</span> Update Research';
+
+    draftBtn.onclick = () => handleUpdate(blogId, "draft", userId);
+    publishBtn.onclick = () => handleUpdate(blogId, "published", userId);
+
+    // Update beforeunload for edit context
+    window.addEventListener("beforeunload", () => {
+      handleUpdate(blogId, "draft", userId);
+    });
   } catch (err) {
-    console.error('Error loading blog:', err);
-    alert('Error loading blog for editing.');
+    console.error("Critical loading error:", err);
   }
 }
 
-let currentMode = "source";
+// --- 4. DUAL-MODE SWITCHER (MARKDOWN VS RICH TEXT) ---
 
-// 2. Dual-Mode Switcher
 window.switchMode = (mode) => {
   const sourceTab = document.getElementById("source-tab");
   const formattedTab = document.getElementById("formatted-tab");
@@ -104,26 +164,30 @@ window.switchMode = (mode) => {
   currentMode = mode;
 
   if (mode === "source") {
+    // Switch to Markdown Editor
     sourceTab.classList.add("active");
     formattedTab.classList.remove("active");
     textarea.style.display = "block";
     preview.style.display = "none";
     preview.contentEditable = false;
-    // Sync from formatted to source
-    if (preview.innerHTML) {
+
+    // Sync from Preview (HTML) back to Textarea (Markdown)
+    if (preview.innerHTML && preview.innerHTML !== "") {
       textarea.value = htmlToMarkdown(preview.innerHTML);
       textarea.dispatchEvent(new Event("input"));
     }
   } else {
+    // Switch to Formatted (Rich Text) Preview
     sourceTab.classList.remove("active");
     formattedTab.classList.add("active");
     textarea.style.display = "none";
     preview.style.display = "block";
     preview.contentEditable = true;
 
-    // Sync and render the preview
+    // Process Content for Markdown Rendering
     let rawContent = textarea.value;
-    // Pre-process graph markers for actual charts
+
+    // Render Graph Syntax (:::graph ... :::)
     let processedContent = rawContent.replace(
       /:::graph([\s\S]*?):::/g,
       (match, configText) => {
@@ -131,50 +195,57 @@ window.switchMode = (mode) => {
         return `<div class="chart-wrapper"><canvas id="${id}" class="article-graph" data-config='${configText.trim()}'></canvas></div>`;
       }
     );
-    preview.innerHTML = marked.parse(processedContent, { renderer: previewRenderer });
-    // Render charts
-    initDynamicCharts(preview.querySelectorAll('.article-graph'));
+
+    // Parse Markdown using marked.js
+    preview.innerHTML = marked.parse(processedContent, {
+      renderer: previewRenderer,
+    });
+
+    // Initialize any charts found in the rendered HTML
+    setTimeout(() => {
+      initDynamicCharts(preview.querySelectorAll(".article-graph"));
+    }, 50);
+
     preview.focus();
 
-    // Add sync listener
-    preview.addEventListener('input', () => {
+    // Bi-directional sync for real-time rich-text editing
+    preview.addEventListener("input", () => {
       textarea.value = htmlToMarkdown(preview.innerHTML);
-      textarea.dispatchEvent(new Event('input'));
+      textarea.dispatchEvent(new Event("input"));
     });
   }
 };
 
-// 3. Toolbar Formatting & Content Insertion
+// --- 5. TOOLBAR & FORMATTING COMMANDS ---
+
 window.formatText = (type) => {
-  if (currentMode === 'formatted') {
+  if (currentMode === "formatted") {
+    // Rich Text Context
     const preview = document.getElementById("markdown-preview");
     preview.focus();
     switch (type) {
       case "bold":
-        document.execCommand('bold');
+        document.execCommand("bold");
         break;
       case "italic":
-        document.execCommand('italic');
+        document.execCommand("italic");
         break;
       case "header":
-        document.execCommand('formatBlock', false, 'h3');
+        document.execCommand("formatBlock", false, "h3");
         break;
       case "list":
-        document.execCommand('insertUnorderedList');
+        document.execCommand("insertUnorderedList");
         break;
       case "quote":
-        document.execCommand('formatBlock', false, 'blockquote');
+        document.execCommand("formatBlock", false, "blockquote");
         break;
       case "link":
-        const url = prompt("Enter URL:");
-        if (url) document.execCommand('createLink', false, url);
-        break;
-      case "image":
-        const imgUrl = prompt("Enter image URL:");
-        if (imgUrl) document.execCommand('insertImage', false, imgUrl);
+        const url = prompt("Enter Research Reference URL:");
+        if (url) document.execCommand("createLink", false, url);
         break;
     }
   } else {
+    // Markdown Context
     const textarea = document.getElementById("content");
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
@@ -183,37 +254,27 @@ window.formatText = (type) => {
 
     switch (type) {
       case "bold":
-        const trimmedBold = selectedText.trim();
-        if (trimmedBold.startsWith("**") && trimmedBold.endsWith("**")) {
-          replacement = trimmedBold.slice(2, -2);
-        } else {
-          replacement = `**${selectedText.trim()}**`;
-        }
+        replacement = `**${selectedText || "bold text"}**`;
         break;
       case "italic":
-        const trimmedItalic = selectedText.trim();
-        if (trimmedItalic.startsWith("*") && trimmedItalic.endsWith("*")) {
-          replacement = trimmedItalic.slice(1, -1);
-        } else {
-          replacement = `*${selectedText.trim()}*`;
-        }
+        replacement = `*${selectedText || "italic text"}*`;
         break;
       case "header":
-        replacement = `\n## ${selectedText}`;
+        replacement = `\n### ${selectedText || "Research Heading"}\n`;
         break;
       case "link":
-        replacement = `[${selectedText || "Link Text"}](https://)`;
+        replacement = `[${selectedText || "Source"}](${
+          prompt("Enter URL:") || "https://"
+        })`;
         break;
       case "list":
-        replacement = `\n* ${selectedText}`;
+        replacement = `\n* ${selectedText || "Research point"}`;
         break;
       case "quote":
-        replacement = `\n> ${selectedText}`;
+        replacement = `\n> ${selectedText || "Scientist quote"}`;
         break;
-      case "image":
-        const url = prompt("Paste direct image link (URL):");
-        if (url)
-          replacement = `\n![${selectedText || "Image Description"}](${url})\n`;
+      case "code":
+        replacement = `\`${selectedText || "code block"}\``;
         break;
     }
 
@@ -227,7 +288,7 @@ window.formatText = (type) => {
 
 window.insertGraph = () => {
   const textarea = document.getElementById("content");
-  const template = `\n:::graph\ntitle: Analysis Results\nlabels: Q1, Q2, Q3, Q4\ndata: 15, 45, 30, 70\ntype: line\n:::\n`;
+  const template = `\n:::graph\ntitle: Data Distribution\nlabels: Mon, Tue, Wed, Thu, Fri\ndata: 12, 19, 3, 5, 2\ntype: bar\n:::\n`;
   textarea.setRangeText(
     template,
     textarea.selectionStart,
@@ -239,11 +300,11 @@ window.insertGraph = () => {
 
 window.insertYouTube = () => {
   const textarea = document.getElementById("content");
-  const url = prompt("Paste YouTube URL:");
+  const url = prompt("Paste Laboratory Video / YouTube URL:");
   if (url) {
     const videoId = extractYouTubeId(url);
     if (videoId) {
-      const embed = `\n<iframe width="560" height="315" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe>\n`;
+      const embed = `\nhttps://www.youtube.com/watch?v=${videoId}\n`;
       textarea.setRangeText(
         embed,
         textarea.selectionStart,
@@ -251,74 +312,12 @@ window.insertYouTube = () => {
         "end"
       );
       textarea.dispatchEvent(new Event("input"));
-    } else {
-      alert("Invalid YouTube URL");
     }
   }
 };
 
-// Custom renderer for YouTube links in preview
-const previewRenderer = new marked.Renderer();
-previewRenderer.link = function(href, title, text) {
-  if (typeof href === 'string' && href.includes('youtube.com/watch?v=')) {
-    const id = href.split('v=')[1].split('&')[0];
-    return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`;
-  }
-  return `<a href="${href || '#'}" title="${title || ''}">${text}</a>`;
-};
+// --- 6. AI SUGGESTION ENGINE ---
 
-function initDynamicCharts(canvases) {
-  canvases.forEach((canvas) => {
-    const lines = canvas.getAttribute("data-config").split("\n");
-    const config = {};
-    lines.forEach((line) => {
-      const [key, val] = line.split(":");
-      if (key && val) config[key.trim().toLowerCase()] = val.trim();
-    });
-
-    if (typeof Chart !== "undefined") {
-      new Chart(canvas, {
-        type: config.type || "line",
-        data: {
-          labels: config.labels ? config.labels.split(",") : [],
-          datasets: [
-            {
-              label: config.title || "Data Points",
-              data: config.data ? config.data.split(",").map(Number) : [],
-              backgroundColor: "rgba(62, 166, 255, 0.2)",
-              borderColor: "#3ea6ff",
-              borderWidth: 2,
-              tension: 0.4,
-            },
-          ],
-        },
-        options: { responsive: true, maintainAspectRatio: false },
-      });
-    }
-  });
-}
-
-function htmlToMarkdown(html) {
-  return html
-    .replace(/<strong>(.*?)<\/strong>/gi, '**$1**')
-    .replace(/<em>(.*?)<\/em>/gi, '*$1*')
-    .replace(/<h1>(.*?)<\/h1>/gi, '# $1\n')
-    .replace(/<h2>(.*?)<\/h2>/gi, '## $1\n')
-    .replace(/<h3>(.*?)<\/h3>/gi, '### $1\n')
-    .replace(/<p>(.*?)<\/p>/gi, '$1\n\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<ul>(.*?)<\/ul>/gi, '$1')
-    .replace(/<ol>(.*?)<\/ol>/gi, '$1')
-    .replace(/<li>(.*?)<\/li>/gi, '* $1\n')
-    .replace(/<a href="(.*?)">(.*?)<\/a>/gi, '[$2]($1)')
-    .replace(/<code>(.*?)<\/code>/gi, '`$1`')
-    .replace(/<pre><code>(.*?)<\/code><\/pre>/gi, '```\n$1\n```\n')
-    .replace(/<iframe.*?src="https:\/\/www\.youtube\.com\/embed\/([^"]*)".*?<\/iframe>/gi, (match, id) => `https://www.youtube.com/watch?v=${id}`)
-    .replace(/&nbsp;/g, ' ')
-    .trim();
-}
-
-// 4. AI Suggestion Engine
 function setupAISuggestionEngine() {
   const textarea = document.getElementById("content");
   const suggestionsBox = document.getElementById("ai-suggestions");
@@ -327,19 +326,41 @@ function setupAISuggestionEngine() {
     const text = textarea.value.toLowerCase();
     suggestionsBox.innerHTML = "";
 
-    if (text.includes("data") && !text.includes(":::graph")) {
-      addSuggestion("Visualizing this data with a graph?", window.insertGraph);
+    // 1. Graph Suggestion
+    if (
+      text.includes("data") ||
+      text.includes("result") ||
+      text.includes("analyze")
+    ) {
+      if (!text.includes(":::graph")) {
+        addAISuggestion(
+          "Visualize results with a data graph?",
+          window.insertGraph
+        );
+      }
     }
-    if (text.length > 200 && !text.includes("ai result")) {
-      addSuggestion("Add an AI-summarized block?", window.insertAIResult);
+
+    // 2. Video Suggestion
+    if (text.includes("watch") || text.includes("demonstration")) {
+      if (!text.includes("youtube")) {
+        addAISuggestion("Embed a video demonstration?", window.insertYouTube);
+      }
     }
+
+    // 3. Metadata Suggestion
+    if (tags.length === 0) {
+      addAISuggestion("Add research tags for discovery?", () =>
+        document.getElementById("tag-input").focus()
+      );
+    }
+
     if (suggestionsBox.innerHTML === "") {
       suggestionsBox.innerHTML =
-        '<p class="hint-text">Keep writing to see AI research tips...</p>';
+        '<p class="hint-text">Drafting research... AI assistant is monitoring.</p>';
     }
   });
 
-  function addSuggestion(msg, action) {
+  function addAISuggestion(msg, action) {
     const pill = document.createElement("div");
     pill.className = "ai-suggest-pill";
     pill.innerHTML = `<span class="material-icons">auto_awesome</span> ${msg}`;
@@ -351,175 +372,11 @@ function setupAISuggestionEngine() {
   }
 }
 
-// 4.1 Drag and Drop for .md files
-function setupDragDrop() {
-  const textarea = document.getElementById("content");
-  const editorContainer = document.querySelector(".editor-container");
-
-  [textarea, editorContainer].forEach(element => {
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      element.addEventListener(eventName, preventDefaults, false);
-    });
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-      element.addEventListener(eventName, highlight, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-      element.addEventListener(eventName, unhighlight, false);
-    });
-
-    element.addEventListener('drop', handleDrop, false);
-  });
-
-  function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  function highlight(e) {
-    editorContainer.classList.add('drag-over');
-  }
-
-  function unhighlight(e) {
-    editorContainer.classList.remove('drag-over');
-  }
-
-  function handleDrop(e) {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-
-    if (files.length > 0) {
-      const file = files[0];
-      if (file.name.endsWith('.md') || file.type === 'text/markdown') {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          textarea.value = event.target.result;
-          textarea.dispatchEvent(new Event('input'));
-        };
-        reader.readAsText(file);
-      } else {
-        alert('Please drop a .md file');
-      }
-    }
-  }
-}
-function setupAutosave(userId) {
-  const titleInput = document.getElementById("title");
-  const contentTextarea = document.getElementById("content");
-  const statusDiv = document.getElementById("autosave-status");
-
-  // Restore from localStorage
-  const savedTitle = localStorage.getItem(`kgr_draft_title_${userId}`);
-  const savedContent = localStorage.getItem(`kgr_draft_content_${userId}`);
-  if (savedTitle) titleInput.value = savedTitle;
-  if (savedContent) contentTextarea.value = savedContent;
-
-  let saveTimeout;
-
-  // Autosave on input with debounce
-  const saveDraft = () => {
-    localStorage.setItem(`kgr_draft_title_${userId}`, titleInput.value);
-    localStorage.setItem(`kgr_draft_content_${userId}`, contentTextarea.value);
-    statusDiv.textContent = "Draft saved";
-    statusDiv.style.color = "#4caf50";
-  };
-
-  titleInput.addEventListener("input", () => {
-    statusDiv.textContent = "Unsaved changes...";
-    statusDiv.style.color = "#ff9800";
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(saveDraft, 1000);
-  });
-  contentTextarea.addEventListener("input", () => {
-    statusDiv.textContent = "Unsaved changes...";
-    statusDiv.style.color = "#ff9800";
-    clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(saveDraft, 1000);
-  });
-
-  // Keyboard shortcut Ctrl+S
-  document.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-      e.preventDefault();
-      handleSubmission('draft', window.currentUser);
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key === "b") {
-      e.preventDefault();
-      formatText('bold');
-    }
-    if ((e.ctrlKey || e.metaKey) && e.key === "i") {
-      e.preventDefault();
-      formatText('italic');
-    }
-  });
-}
-
-// 5. Metadata (Thumbnail, Tags, Authors)
-function setupImagePreview() {
-  const imageInput = document.getElementById("image-input");
-  const imagePreview = document.getElementById("image-preview");
-  const icon = document.querySelector(".thumbnail-box .material-icons");
-
-  imageInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      selectedImageFile = file;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        imagePreview.src = event.target.result;
-        imagePreview.style.display = "block";
-        if (icon) icon.style.display = "none";
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-}
+// --- 7. METADATA MANAGEMENT (TAGS & COLLABORATORS) ---
 
 function setupTagSystem() {
   const tagInput = document.getElementById("tag-input");
   const container = document.getElementById("tag-chip-container");
-  const suggestionsDiv = document.getElementById("tag-suggestions");
-
-  let commonTags = [];
-
-  // Fetch common tags from Google-like source (GitHub topics)
-  fetch('https://api.github.com/search/topics?q=research&per_page=20')
-    .then(res => res.json())
-    .then(data => {
-      commonTags = data.items ? data.items.map(item => item.name) : [];
-    })
-    .catch(() => {
-      commonTags = ["AI", "Machine Learning", "Data Science", "Physics", "Chemistry", "Biology", "Mathematics", "Computer Science", "Research", "Analysis", "Statistics", "Neuroscience", "Genetics", "Climate", "Environment"];
-    });
-
-  tagInput.addEventListener("input", () => {
-    const query = tagInput.value.toLowerCase().trim();
-    suggestionsDiv.innerHTML = "";
-    if (query.length > 0) {
-      const matches = commonTags.filter(tag => tag.toLowerCase().includes(query) && !tags.includes(tag.toLowerCase()));
-      if (matches.length > 0) {
-        suggestionsDiv.style.display = "block";
-        matches.slice(0, 5).forEach(tag => {
-          const div = document.createElement("div");
-          div.textContent = tag;
-          div.onclick = () => {
-            if (tags.length < MAX_TAGS && !tags.includes(tag.toLowerCase())) {
-              tags.push(tag.toLowerCase());
-              renderTags();
-            }
-            tagInput.value = "";
-            suggestionsDiv.style.display = "none";
-          };
-          suggestionsDiv.appendChild(div);
-        });
-      } else {
-        suggestionsDiv.style.display = "none";
-      }
-    } else {
-      suggestionsDiv.style.display = "none";
-    }
-  });
 
   tagInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === ",") {
@@ -530,50 +387,26 @@ function setupTagSystem() {
         renderTags();
       }
       tagInput.value = "";
-      suggestionsDiv.style.display = "none";
-    }
-  });
-
-  // Show trending tags
-  document.getElementById('show-trending-btn').onclick = () => {
-    suggestionsDiv.innerHTML = "";
-    suggestionsDiv.style.display = "block";
-    commonTags.slice(0, 10).forEach(tag => {
-      const div = document.createElement("div");
-      div.textContent = tag;
-      div.onclick = () => {
-        if (tags.length < MAX_TAGS && !tags.includes(tag.toLowerCase())) {
-          tags.push(tag.toLowerCase());
-          renderTags();
-        }
-        tagInput.value = "";
-        suggestionsDiv.style.display = "none";
-      };
-      suggestionsDiv.appendChild(div);
-    });
-  };
-
-  // Close suggestions on outside click
-  document.addEventListener('click', (e) => {
-    if (!suggestionsDiv.contains(e.target) && e.target !== tagInput && e.target !== document.getElementById('show-trending-btn')) {
-      suggestionsDiv.style.display = 'none';
     }
   });
 
   function renderTags() {
     container.querySelectorAll(".tag-chip").forEach((el) => el.remove());
-    tags.forEach((tag, index) => {
+    tags.forEach((tag, idx) => {
       const chip = document.createElement("div");
       chip.className = "tag-chip";
-      chip.innerHTML = `#${tag} <span class="material-icons" onclick="removeTag(${index})">close</span>`;
+      chip.innerHTML = `#${tag} <span class="material-icons" onclick="removeTag(${idx})">close</span>`;
       container.insertBefore(chip, tagInput);
     });
     document.getElementById(
       "tag-count-indicator"
-    ).textContent = `${tags.length}/${MAX_TAGS} tags used`;
+    ).textContent = `${tags.length}/${MAX_TAGS}`;
   }
-  window.removeTag = (index) => {
-    tags.splice(index, 1);
+
+  // Export to Window for global access
+  window.updateTagDisplay = renderTags;
+  window.removeTag = (idx) => {
+    tags.splice(idx, 1);
     renderTags();
   };
 }
@@ -583,164 +416,311 @@ function setupCollaboratorSystem() {
   const container = document.getElementById("author-chip-container");
 
   authorInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && authorInput.value.trim()) {
+    if (e.key === "Enter") {
       e.preventDefault();
-      const vals = authorInput.value.trim().split(",").map(v => v.trim().replace("@", "")).filter(v => v);
-      vals.forEach(val => {
-        if (!coAuthors.includes(val)) {
-          coAuthors.push(val);
-        }
-      });
-      renderAuthors();
+      const val = authorInput.value.trim().replace("@", "");
+      if (val && !coAuthors.includes(val)) {
+        coAuthors.push(val);
+        renderAuthors();
+      }
       authorInput.value = "";
     }
   });
 
   function renderAuthors() {
     container.querySelectorAll(".tag-chip").forEach((el) => el.remove());
-    coAuthors.forEach((author, index) => {
+    coAuthors.forEach((author, idx) => {
       const chip = document.createElement("div");
       chip.className = "tag-chip";
-      chip.innerHTML = `@${author} <span class="material-icons" onclick="removeAuthor(${index})">close</span>`;
+      chip.innerHTML = `@${author} <span class="material-icons" onclick="removeAuthor(${idx})">close</span>`;
       container.insertBefore(chip, authorInput);
     });
   }
-  window.removeAuthor = (index) => {
-    coAuthors.splice(index, 1);
+
+  window.updateAuthorDisplay = renderAuthors;
+  window.removeAuthor = (idx) => {
+    coAuthors.splice(idx, 1);
     renderAuthors();
   };
 }
 
-// 6. Final Submission
-async function handleSubmission(statusStr, user) {
-  let title = document.getElementById("title").value.trim();
-  if (!title) title = 'Untitled';
-  let content;
-  if (currentMode === "formatted") {
-    content = htmlToMarkdown(document.getElementById("markdown-preview").innerHTML);
-  } else {
-    content = document.getElementById("content").value.trim();
-  }
-  const publishBtn = document.getElementById("publish-btn");
-  const draftBtn = document.getElementById("draft-btn");
+// --- 8. IMAGE & MEDIA LOGIC ---
 
-  if (!title || !content) {
-    alert("Title and content are required.");
+function setupImagePreview() {
+  const input = document.getElementById("image-input");
+  const preview = document.getElementById("image-preview");
+  const icon = document.querySelector(".thumbnail-box .material-icons");
+
+  input.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      selectedImageFile = file;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        preview.src = ev.target.result;
+        preview.style.display = "block";
+        if (icon) icon.style.display = "none";
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+function setupDragDrop() {
+  const textarea = document.getElementById("content");
+  textarea.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    textarea.classList.add("drag-active");
+  });
+  textarea.addEventListener("dragleave", () =>
+    textarea.classList.remove("drag-active")
+  );
+  textarea.addEventListener("drop", (e) => {
+    e.preventDefault();
+    textarea.classList.remove("drag-active");
+    const file = e.dataTransfer.files[0];
+    if (file && (file.name.endsWith(".md") || file.name.endsWith(".txt"))) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        textarea.value = ev.target.result;
+        textarea.dispatchEvent(new Event("input"));
+      };
+      reader.readAsText(file);
+    }
+  });
+}
+
+// --- 9. PERSISTENCE LOGIC (SUBMIT / UPDATE) ---
+
+async function handleSubmission(statusStr, user) {
+  // Prevent the auto-save from firing during the redirect
+  isNavigatingAway = true;
+
+  const title =
+    document.getElementById("title").value.trim() || "Untitled Archival Record";
+  const content = document.getElementById("content").value.trim();
+
+  if (!content) {
+    alert("Integrity Error: Research body cannot be empty.");
+    isNavigatingAway = false; // Re-enable auto-save if we stop here
     return;
   }
 
-  publishBtn.disabled = true;
-  draftBtn.disabled = true;
+  const btn =
+    statusStr === "published"
+      ? document.getElementById("publish-btn")
+      : document.getElementById("draft-btn");
+
+  btn.disabled = true;
+  btn.textContent = "...Archiving";
 
   try {
-    const { data: profile } = await supabaseClient
-      .from("profiles")
-      .select("username")
-      .eq("id", user.id)
-      .single();
     let finalImageUrl = null;
 
+    // Upload Thumbnail if selected
     if (selectedImageFile) {
       const path = `${user.id}/thumb_${Date.now()}`;
       const { error: uploadError } = await supabaseClient.storage
         .from("blog-images")
         .upload(path, selectedImageFile);
+
       if (uploadError) throw uploadError;
+
       finalImageUrl = supabaseClient.storage
         .from("blog-images")
         .getPublicUrl(path).data.publicUrl;
     }
 
-    const { error: dbError } = await supabaseClient.from("blogs").insert([
+    const { error } = await supabaseClient.from("blogs").insert([
       {
         title,
         content,
         status: statusStr,
         user_id: user.id,
-        author: profile?.username || user.email.split("@")[0],
+        author: user.email.split("@")[0],
         image_url: finalImageUrl,
-        tags: tags,
+        tags,
         co_authors: coAuthors,
-        created_at: new Date(),
+        created_at: new Date().toISOString(),
       },
     ]);
 
-    if (dbError) throw dbError;
-    // Clear drafts after successful submission
+    if (error) throw error;
+
+    // Clean up LocalStorage
     localStorage.removeItem(`kgr_draft_title_${user.id}`);
     localStorage.removeItem(`kgr_draft_content_${user.id}`);
-    window.location.href = "index.html";
+
+    window.location.href =
+      statusStr === "published" ? "index.html" : "contributions.html";
   } catch (err) {
-    alert(`Failed: ${err.message}`);
-    publishBtn.disabled = false;
-    draftBtn.disabled = false;
+    console.error("Archival Failed:", err);
+    alert(`Failed to archive: ${err.message}`);
+    isNavigatingAway = false; // Error occurred, turn auto-save back on
+    btn.disabled = false;
+    btn.textContent =
+      statusStr === "published" ? "Publish Research" : "Save Draft";
   }
 }
 
 async function handleUpdate(blogId, statusStr, userId) {
-  let title = document.getElementById("title").value.trim();
-  if (!title) title = 'Untitled';
-  let content;
-  if (currentMode === "formatted") {
-    content = htmlToMarkdown(document.getElementById("markdown-preview").innerHTML);
-  } else {
-    content = document.getElementById("content").value.trim();
-  }
-  const publishBtn = document.getElementById("publish-btn");
-  const draftBtn = document.getElementById("draft-btn");
+  // Prevent the auto-save from firing during the redirect
+  isNavigatingAway = true;
 
-  if (!title || !content) {
-    alert("Title and content are required.");
+  const title =
+    document.getElementById("title").value.trim() || "Untitled Archival Record";
+  const content = document.getElementById("content").value.trim();
+
+  // UI Feedback: Disable buttons while processing
+  const draftBtn = document.getElementById("draft-btn");
+  const publishBtn = document.getElementById("publish-btn");
+  const originalDraftText = draftBtn.innerHTML;
+  const originalPublishText = publishBtn.innerHTML;
+
+  if (!content) {
+    alert("Research body cannot be empty.");
+    isNavigatingAway = false; // Re-enable auto-save if we stop here
     return;
   }
 
-  publishBtn.disabled = true;
   draftBtn.disabled = true;
+  publishBtn.disabled = true;
 
   try {
     let finalImageUrl = null;
 
+    // Handle image: If a NEW file was picked, upload it.
     if (selectedImageFile) {
       const path = `${userId}/thumb_${Date.now()}`;
       const { error: uploadError } = await supabaseClient.storage
         .from("blog-images")
         .upload(path, selectedImageFile);
+
       if (uploadError) throw uploadError;
+
       finalImageUrl = supabaseClient.storage
         .from("blog-images")
         .getPublicUrl(path).data.publicUrl;
-    } else {
-      // Keep existing image if no new file selected
-      const { data: existingBlog } = await supabaseClient
-        .from('blogs')
-        .select('image_url')
-        .eq('id', blogId)
-        .single();
-      finalImageUrl = existingBlog?.image_url;
     }
 
+    // PERFORM THE UPDATE
     const { error: dbError } = await supabaseClient
       .from("blogs")
       .update({
-        title,
-        content,
+        title: title,
+        content: content,
         status: statusStr,
-        image_url: finalImageUrl,
+        image_url: finalImageUrl || undefined, // undefined prevents overwriting with null if no new image
         tags: tags,
         co_authors: coAuthors,
-        updated_at: new Date(),
+        updated_at: new Date().toISOString(),
       })
-      .eq('id', blogId)
-      .eq('user_id', userId);
+      .eq("id", blogId)
+      .eq("user_id", userId);
 
     if (dbError) throw dbError;
-    // Clear drafts after successful update
+
+    // Clear local cache
     localStorage.removeItem(`kgr_draft_title_${userId}`);
     localStorage.removeItem(`kgr_draft_content_${userId}`);
+
+    // Success redirect
     window.location.href = "contributions.html";
   } catch (err) {
-    alert(`Failed: ${err.message}`);
-    publishBtn.disabled = false;
+    console.error("Update Failed:", err);
+    alert(`Failed to update record: ${err.message}`);
+
+    isNavigatingAway = false; // Error occurred, turn auto-save back on
     draftBtn.disabled = false;
+    publishBtn.disabled = false;
+    draftBtn.innerHTML = originalDraftText;
+    publishBtn.innerHTML = originalPublishText;
   }
 }
+
+// --- 10. HELPER UTILITIES ---
+
+function setupAutosave(userId) {
+  const status = document.getElementById("autosave-status");
+  document.getElementById("content").addEventListener("input", (e) => {
+    status.textContent = "Changes detected...";
+    clearTimeout(autosaveTimeout);
+    autosaveTimeout = setTimeout(() => {
+      localStorage.setItem(`kgr_draft_content_${userId}`, e.target.value);
+      status.textContent = "Securely cached";
+    }, 2000);
+  });
+}
+
+function initDynamicCharts(canvases) {
+  canvases.forEach((canvas) => {
+    const lines = canvas.getAttribute("data-config").split("\n");
+    const config = {};
+    lines.forEach((l) => {
+      const [k, v] = l.split(":");
+      if (k && v) config[k.trim().toLowerCase()] = v.trim();
+    });
+
+    if (window.Chart) {
+      new Chart(canvas, {
+        type: config.type || "line",
+        data: {
+          labels: config.labels ? config.labels.split(",") : ["A", "B", "C"],
+          datasets: [
+            {
+              label: config.title || "Research Data",
+              data: config.data
+                ? config.data.split(",").map(Number)
+                : [10, 20, 30],
+              borderColor: "#3ea6ff",
+              backgroundColor: "rgba(62, 166, 255, 0.1)",
+              tension: 0.4,
+            },
+          ],
+        },
+        options: { responsive: true, maintainAspectRatio: false },
+      });
+    }
+  });
+}
+
+function htmlToMarkdown(html) {
+  // Basic Markdown converter for rich text sync
+  return html
+    .replace(/<strong>(.*?)<\/strong>/gi, "**$1**")
+    .replace(/<em>(.*?)<\/em>/gi, "*$1*")
+    .replace(/<h3>(.*?)<\/h3>/gi, "### $1\n")
+    .replace(/<blockquote>(.*?)<\/blockquote>/gi, "> $1\n")
+    .replace(/<li>(.*?)<\/li>/gi, "* $1\n")
+    .replace(/<p>(.*?)<\/p>/gi, "$1\n\n")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "") // Strip remaining HTML
+    .trim();
+}
+
+function extractYouTubeId(url) {
+  const regExp =
+    /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+}
+
+const previewRenderer = new marked.Renderer();
+previewRenderer.link = (href, title, text) => {
+  if (href.includes("youtube.com")) {
+    const id = extractYouTubeId(href);
+    return `<iframe width="100%" height="315" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`;
+  }
+  return `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
+};
+
+function handleWindowResize() {
+  const editor = document.querySelector(".editor-container");
+  if (window.innerWidth < 768) {
+    editor.classList.add("mobile-view");
+  } else {
+    editor.classList.remove("mobile-view");
+  }
+}
+
+window.addEventListener("resize", handleWindowResize);

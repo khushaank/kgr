@@ -7211,3 +7211,75 @@ textarea:focus {
     font-size: 3.5rem;
   }
 }
+/* Container styling for the contact form */
+.charter-box {
+  background-color: #000; /* Deep black background */
+  border: 1px solid #1a1a1a; /* Subtle dark border */
+  padding: 60px; /* Spacious internal padding */
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Header styling */
+.charter-box h3 {
+  color: #fff; /* High-contrast white text */
+  font-weight: 800;
+  font-size: 1.5rem;
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+/* Label styling */
+.input-group label {
+  display: block;
+  font-size: 0.75rem; /* Small, technical font size */
+  letter-spacing: 1px;
+  color: #888; /* Muted grey labels */
+  margin-bottom: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+/* Input and Textarea styling */
+.studio-input {
+  width: 100%;
+  background: #000; /* Matches the dark background */
+  border: 1px solid #333; /* Border color as seen in the image */
+  border-radius: 4px; /* Slight rounding */
+  color: #fff; /* White text for input */
+  padding: 12px 16px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  outline: none;
+  margin-bottom: 20px;
+}
+
+/* Placeholder text styling */
+.studio-input::placeholder {
+  color: #444; /* Darker grey for placeholders */
+}
+
+/* Focus state for inputs */
+.studio-input:focus {
+  border-color: #3ea6ff; /* Research Blue focus highlight */
+}
+
+/* Primary "Authorize Transmission" button */
+.primary-btn {
+  background-color: #3ea6ff; /* Vibrant blue as seen in image */
+  color: #000; /* Black text for high contrast on blue */
+  padding: 14px 24px;
+  border-radius: 8px; /* Matching the image's rounded button */
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Button hover effect */
+.primary-btn:hover {
+  transform: translateY(-3px); /* Subtle lift on hover */
+  opacity: 0.9;
+}

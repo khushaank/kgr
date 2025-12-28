@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Developers | KGR Archive API</title>
+    <link rel="icon" type="image/png" href="images/KGR.png" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+
+  <body class="about-main-wrapper">
+    <div id="header-hook"></div>
+
+    <main class="container">
+      <section class="hero-visual">
+        <div class="hero-badge">API • OPEN SOURCE</div>
+        <h1 class="hero-title">Build on the<br />KGR Infrastructure</h1>
+        <p class="subtitle" style="max-width: 600px; margin: 0 auto">
+          Access high-integrity research data through our PostgreSQL-powered API
+          and contribute to decentralized science.
+        </p>
+      </section>
+
+      <section class="info-section">
+        <div class="charter-box">
+          <h2 style="font-size: 2rem; margin-bottom: 20px">The KGR API</h2>
+          <p>
+            Our infrastructure is built for interoperability. Developers can
+            query the archive to build discovery tools, citation managers, or
+            institutional dashboards.
+          </p>
+          <div
+            style="
+              background: #000;
+              padding: 20px;
+              border-radius: 8px;
+              border: 1px solid #333;
+              margin-top: 25px;
+            "
+          >
+            <code class="mono" style="color: var(--accent)">
+              // Initialize Supabase Client<br />
+              const client = supabase.createClient(URL, KEY);<br /><br />
+              // Fetch Published Research<br />
+              const { data } = await client<br />
+              &nbsp;&nbsp;.from('blogs')<br />
+              &nbsp;&nbsp;.select('*')<br />
+              &nbsp;&nbsp;.eq('status', 'published');
+            </code>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-section">
+        <h2 class="section-title">Technical Pillars</h2>
+        <div class="charter-grid">
+          <div class="charter-card">
+            <span class="material-icons" style="color: var(--accent)"
+              >terminal</span
+            >
+            <h3 style="margin: 20px 0 10px">PostgreSQL Core</h3>
+            <p>
+              Utilize structured relational data for complex research queries
+              and automated metadata analysis.
+            </p>
+          </div>
+          <div class="charter-card">
+            <span class="material-icons" style="color: var(--accent)"
+              >sync</span
+            >
+            <h3 style="margin: 20px 0 10px">Real-time Sync</h3>
+            <p>
+              Listen to database changes for instant notifications on new
+              laboratory publications.
+            </p>
+          </div>
+          <div class="charter-card">
+            <span class="material-icons" style="color: var(--accent)"
+              >security</span
+            >
+            <h3 style="margin: 20px 0 10px">RLS Policy</h3>
+            <p>
+              Our Row Level Security (RLS) ensures that private drafts remain
+              encrypted and only accessible to authors.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-section" style="text-align: center">
+        <h2 style="margin-bottom: 20px">Open Source Contribution</h2>
+        <p style="max-width: 800px; margin: 0 auto; color: #888">
+          Join the development collective. Submit pull requests for security
+          hardening or help us expand our RAG-AI capabilities.
+        </p>
+      </section>
+    </main>
+
+    <div id="footer-hook"></div>
+
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
