@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Entry | KGR Research Studio</title>
+    <link rel="icon" type="image/png" href="images/KGR.png" />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav class="create-nav">
+      <div class="nav-left">
+        <span
+          class="material-icons close-icon"
+          onclick="window.location.href='index.html'"
+          >close</span
+        >
+        <h1 class="mono">Research Studio</h1>
+      </div>
+      <div class="action-buttons">
+        <button id="draft-btn" class="secondary-btn">Save Draft</button>
+        <button id="publish-btn" class="primary-btn">Publish</button>
+      </div>
+    </nav>
+
+    <main class="studio-layout">
+      <section class="studio-main-content">
+        <div class="studio-card">
+          <label>TITLE (REQUIRED)</label>
+          <input
+            type="text"
+            id="title"
+            placeholder="Add a descriptive title"
+            required
+          />
+        </div>
+
+        <div class="studio-card">
+          <div class="editor-header-flex">
+            <label>CONTENT</label>
+            <div class="mode-tabs">
+              <button
+                class="tab-btn active"
+                id="source-tab"
+                onclick="switchMode('source')"
+              >
+                Source
+              </button>
+              <button
+                class="tab-btn"
+                id="formatted-tab"
+                onclick="switchMode('formatted')"
+              >
+                Formatted
+              </button>
+            </div>
+          </div>
+          <div class="editor-toolbar">
+            <div class="toolbar-group">
+              <button type="button" onclick="formatText('bold')" title="Bold (Ctrl+B)">
+                <span class="material-icons">format_bold</span>
+              </button>
+              <button type="button" onclick="formatText('italic')" title="Italic (Ctrl+I)">
+                <span class="material-icons">format_italic</span>
+              </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+              <button type="button" onclick="formatText('list')" title="List">
+                <span class="material-icons">format_list_bulleted</span>
+              </button>
+              <button type="button" onclick="formatText('quote')" title="Quote">
+                <span class="material-icons">format_quote</span>
+              </button>
+              <button
+                type="button"
+                onclick="formatText('header')"
+                title="Heading"
+              >
+                <span class="material-icons">title</span>
+              </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+              <button type="button" onclick="formatText('link')" title="Link">
+                <span class="material-icons">link</span>
+              </button>
+              <button
+                type="button"
+                onclick="formatText('image')"
+                title="Image Link"
+              >
+                <span class="material-icons">image</span>
+              </button>
+              <button
+                type="button"
+                onclick="insertYouTube()"
+                title="YouTube Video"
+              >
+                <span class="material-icons">videocam</span>
+              </button>
+            </div>
+            <div class="toolbar-divider"></div>
+            <div class="toolbar-group">
+              <button type="button" onclick="insertGraph()" title="Add Graph">
+                <span class="material-icons">bar_chart</span>
+              </button>
+              <button type="button" onclick="insertAIResult()" title="AI Insight">
+                <span class="material-icons">auto_awesome</span>
+              </button>
+            </div>
+          </div>
+          <div class="editor-container">
+            <textarea
+              id="content"
+              placeholder="Use Markdown or tools above... Drag and drop .md files here"
+            ></textarea>
+            <div
+              id="markdown-preview"
+              class="editable-preview"
+              style="display: none"
+            ></div>
+          </div>
+          <div id="autosave-status" class="autosave-status">Ready to edit</div>
+        </div>
+      </section>
+
+      <aside class="studio-sidebar">
+        <div class="studio-card sidebar-thumbnail">
+          <label>THUMBNAIL</label>
+          <div
+            class="thumbnail-box small"
+            onclick="document.getElementById('image-input').click()"
+          >
+            <img id="image-preview" src="" alt="Thumbnail Preview" />
+            <span class="material-icons">add_a_photo</span>
+            <input type="file" id="image-input" hidden accept="image/*" />
+          </div>
+        </div>
+
+        <div class="studio-card">
+          <label>TAGS</label>
+          <div class="chip-container" id="tag-chip-container">
+            <input type="text" id="tag-input" placeholder="Add tags (e.g. AI, Physics)" />
+            <div id="tag-suggestions" class="tag-suggestions" style="display: none;"></div>
+          </div>
+          <div id="tag-count-indicator" class="tag-limit-indicator">
+            0/3 tags used
+          </div>
+          <button id="show-trending-btn" class="secondary-btn" style="margin-top: 10px;">Show Trending</button>
+        </div>
+
+        <div class="studio-card">
+          <label>COLLABORATION</label>
+          <div class="chip-container" id="author-chip-container">
+            <input type="text" id="author-input" placeholder="@username" />
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="create.js"></script>
+  </body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About | KGR Archive - The Global Research Database</title>
+    <link rel="icon" type="image/png" href="images/KGR.png" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&family=JetBrains+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+      /* Cinematic Loading Screen */
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #050505;
+        z-index: 99999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 1.2s cubic-bezier(0.7, 0, 0.3, 1), visibility 1.2s;
+      }
+      .loading-text-container {
+        display: flex;
+        font-family: "Roboto", sans-serif;
+        font-weight: 900;
+        font-size: clamp(3rem, 10vw, 8rem);
+        color: #fff;
+        letter-spacing: -0.05em;
+      }
+      .loading-letter {
+        opacity: 0;
+        transform: translateY(30px) scale(0.9);
+        animation: revealLetter 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: calc(var(--i) * 0.15s);
+      }
+      @keyframes revealLetter {
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      /* Technical Typography */
+      .mono {
+        font-family: "JetBrains Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        font-size: 0.85rem;
+        color: #666;
+      }
+    </style>
+  </head>
+
+  <body class="studio-theme">
+    <div id="loading-screen">
+      <div class="loading-text-container">
+        <span class="loading-letter" style="--i: 1">K</span>
+        <span class="loading-letter" style="--i: 2">G</span>
+        <span class="loading-letter" style="--i: 3">R</span>
+      </div>
+    </div>
+
+    <script>
+      window.addEventListener("load", () => {
+        const loader = document.getElementById("loading-screen");
+        setTimeout(() => {
+          loader.classList.add("loader-hidden");
+          setTimeout(() => loader.remove(), 1200);
+        }, 2200);
+      });
+    </script>
+
+    <div id="header-hook"></div>
+
+    <main class="about-container">
+      <section class="about-hero">
+        <div class="hero-glow"></div>
+        <div class="hero-content">
+          <span class="mono fade-in">Established Dec 2025</span>
+          <h1 class="fade-in">KGR ARCHIVE</h1>
+          <p class="subtitle">A global infrastructure for scientific truth.</p>
+        </div>
+      </section>
+
+      <section class="tech-stack-section">
+        <div class="container-mid">
+          <h2 class="section-title">Technical Architecture</h2>
+          <div class="tech-grid">
+            <div class="tech-item">
+              <h4>128-bit Encryption</h4>
+              <p>
+                Every data packet, from researcher identity to raw laboratory
+                findings, is secured using industry-standard AES-128 encryption
+                protocols.
+              </p>
+            </div>
+            <div class="tech-item">
+              <h4>RAG Technology</h4>
+              <p>
+                Our AI search uses Retrieval-Augmented Generation to synthesize
+                accurate answers directly from archived papers.
+              </p>
+            </div>
+            <div class="tech-item">
+              <h4>Supabase Backend</h4>
+              <p>
+                Utilizing high-performance PostgreSQL databases to ensure
+                sub-millisecond query times for global research access.
+              </p>
+            </div>
+            <div class="tech-item">
+              <h4>Atomic Attribution</h4>
+              <p>
+                Every publication is assigned a unique ID, creating an immutable
+                link between the data and the verified author.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="charter-section">
+        <div class="charter-box">
+          <h3>The KGR Ethical Charter</h3>
+          <ul class="charter-list">
+            <li>
+              <strong>Verifiability:</strong> Research is only archived after
+              verified identity authentication.
+            </li>
+            <li>
+              <strong>Transparency:</strong> All published data is searchable
+              via the global research feed.
+            </li>
+            <li>
+              <strong>Sovereignty:</strong> Researchers maintain full control
+              over their drafts until the point of publication.
+            </li>
+            <li>
+              <strong>Accessibility:</strong> High-integrity research should be
+              available to every lab, regardless of geography.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="roadmap-section">
+        <h2 class="section-title">Archive Evolution</h2>
+        <div class="roadmap-container">
+          <div class="roadmap-step active">
+            <span>Q4 2025</span>
+            <h4>Genesis Phase</h4>
+            <p>
+              Launch of the centralized archive, researcher profiles, and secure
+              studio.
+            </p>
+          </div>
+          <div class="roadmap-step">
+            <span>Q1 2026</span>
+            <h4>Collaboration Suite</h4>
+            <p>
+              Advanced co-author tagging and multi-lab project management tools.
+            </p>
+          </div>
+          <div class="roadmap-step">
+            <span>Q2 2026</span>
+            <h4>API Integration</h4>
+            <p>
+              Opening the KGR database to external academic institutions for
+              automated indexing.
+            </p>
+          </div>
+        </div>
+      </section>
+      <section class="impact-section">
+        <div class="container-mid">
+          <h2 class="section-title">Global Knowledge Distribution</h2>
+          <div class="impact-content">
+            <div class="impact-text">
+              <p>
+                The KGR Archive is more than a database; it is a global movement
+                to ensure that scientific findings are never lost to
+                institutional silos or paywalls. By decentralizing how research
+                is stored, we create a resilient web of knowledge accessible
+                from any laboratory, anywhere.
+              </p>
+            </div>
+            <div class="map-container">
+              <div class="map-node" style="top: 20%; left: 30%"></div>
+              <div class="map-node" style="top: 40%; left: 70%"></div>
+              <div class="map-node" style="top: 60%; left: 45%"></div>
+              <div class="map-node" style="top: 30%; left: 80%"></div>
+              <p class="mono">Network Status: Active / Decentralized</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cause-section">
+        <div class="container-mid">
+          <h2 class="section-title">How You Help the Cause</h2>
+          <div class="cause-grid">
+            <div class="cause-card">
+              <span class="material-icons">cloud_upload</span>
+              <h4>Archive Raw Data</h4>
+              <p>
+                Help fight "Publication Bias" by uploading successful
+                experiments and failed laboratory attempts alike. Every data
+                point helps the community.
+              </p>
+            </div>
+            <div class="cause-card">
+              <span class="material-icons">groups</span>
+              <h4>Collaborate & Attribute</h4>
+              <p>
+                Use the co-author system to give credit to student researchers
+                and lab assistants who are often left out of traditional
+                journals.
+              </p>
+            </div>
+            <div class="cause-card">
+              <span class="material-icons">psychology_alt</span>
+              <h4>Feed the AI Knowledge</h4>
+              <p>
+                Your publications directly inform the KGR RAG AI, allowing other
+                researchers to find your work through natural language
+                questions.
+              </p>
+            </div>
+            <div class="cause-card">
+              <span class="material-icons">share</span>
+              <h4>Promote Research Integrity</h4>
+              <p>
+                By using your verified identity, you set the standard for
+                transparency in your field of study.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="footer-hook"></div>
+
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -1,0 +1,145 @@
+<nav class="main-nav">
+  <div class="nav-left">
+    <div
+      class="logo-area"
+      onclick="window.location.href='index.html'"
+      style="display: flex; align-items: center; cursor: pointer; gap: 8px"
+    >
+      <img
+        src="images/KGR.png"
+        alt="Logo"
+        class="nav-logo"
+        style="height: 32px"
+      />
+      <h1
+        class="logo-text"
+        style="font-size: 1.2rem; font-weight: bold; letter-spacing: -0.5px"
+      >
+        KGR
+      </h1>
+    </div>
+  </div>
+
+  <div class="mobile-hamburger">
+    <button id="hamburger-menu" class="icon-btn">
+      <span class="material-icons">menu</span>
+    </button>
+  </div>
+
+  <div class="nav-center search-container">
+    <button id="mobile-search-back" class="icon-btn mobile-only hidden">
+      <span class="material-icons">arrow_back</span>
+    </button>
+
+    <div class="search-box-wrapper">
+      <div class="search-input-area">
+        <input
+          type="text"
+          id="search-bar"
+          placeholder="Search research papers or 'Ask' a question..."
+          autocomplete="off"
+        />
+        <span
+          class="material-icons clear-btn"
+          id="clear-search"
+          style="display: none"
+          >close</span
+        >
+      </div>
+      <button id="search-btn" class="search-icon-btn">
+        <span class="material-icons">search</span>
+      </button>
+    </div>
+
+    <button id="mobile-search-trigger" class="icon-btn mobile-only">
+      <span class="material-icons">search</span>
+    </button>
+
+    <button id="voice-ask-btn" class="voice-btn">
+      <span class="material-icons">mic</span>
+    </button>
+
+    <div
+      id="search-suggestions"
+      class="suggestions-dropdown"
+      style="display: none"
+    ></div>
+  </div>
+
+  <div class="nav-right">
+    <button
+      id="add-btn"
+      class="icon-btn hidden-on-mobile"
+      style="display: none"
+      onclick="window.location.href='create.html'"
+    >
+      <span class="material-icons">video_call</span>
+    </button>
+    <div id="profile-btn" class="profile-btn">
+      <span class="material-icons" id="nav-profile-placeholder"
+        >account_circle</span
+      >
+    </div>
+
+    <div id="profile-dropdown" class="dropdown-menu">
+      <div class="dropdown-header">
+        <img
+          id="dropdown-profile-img"
+          src="https://ui-avatars.com/api/?name=User"
+          alt="User"
+        />
+        <div class="user-info">
+          <div id="user-name">Researcher</div>
+          <div id="user-email">@username</div>
+          <a href="contributions.html" class="view-channel-link"
+            >Your contributions</a
+          >
+        </div>
+      </div>
+      <div class="dropdown-divider"></div>
+      <a href="#" id="sign-out-btn" class="dropdown-item">
+        <span class="material-icons">logout</span> <span>Sign out</span>
+      </a>
+      <div class="dropdown-divider"></div>
+      <a href="settings.html" class="dropdown-item">
+        <span class="material-icons">settings</span> <span>Settings</span>
+      </a>
+      <a href="help.html" class="dropdown-item">
+        <span class="material-icons">help_outline</span> <span>Help</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div id="side-drawer" class="side-drawer">
+  <div class="drawer-content">
+    <a href="settings.html" id="drawer-settings" class="drawer-item"
+      ><span class="material-icons">settings</span> Settings</a
+    >
+    <a href="#" class="drawer-item"
+      ><span class="material-icons">flag</span> Report history</a
+    >
+    <a href="help.html" class="drawer-item"
+      ><span class="material-icons">help_outline</span> Help</a
+    >
+    <a href="#" class="drawer-item"
+      ><span class="material-icons">comment</span> Send feedback</a
+    >
+    <div class="drawer-divider"></div>
+    <div class="drawer-footer">
+      <div class="footer-links">
+        <a href="#">About</a> <a href="#">Press</a> <a href="#">Copyright</a>
+        <a href="#">Contact us</a> <a href="#">Creators</a>
+        <a href="#">Advertise</a>
+        <a href="#">Developers</a>
+      </div>
+      <div class="footer-links" style="margin-top: 12px">
+        <a href="#">Terms</a> <a href="#">Privacy</a>
+        <a href="#">Policy & Safety</a> <a href="#">How YouTube works</a>
+        <a href="#">Test new features</a>
+      </div>
+      <p style="margin-top: 16px; color: #717171">&copy; 2025 KGR Archive</p>
+    </div>
+  </div>
+</div>
+<div id="drawer-overlay" class="drawer-overlay"></div>

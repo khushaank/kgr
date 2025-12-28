@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gateway | KGR - Research</title>
+    <link rel="icon" type="image/png" href="images/KGR.png" />
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="auth-page">
+    <div class="auth-overlay">
+      <main class="auth-card">
+        <header class="auth-header">
+          <div class="brand-tag">KGR — ARCHIVE</div>
+          <h1 id="auth-title">Research Access</h1>
+          <p id="auth-subtitle">
+            Enter your credentials to access the laboratory database.
+          </p>
+        </header>
+
+        <form id="auth-form">
+          <div class="field signup-only" style="display: none">
+            <label>FULL NAME</label>
+            <input type="text" id="full-name" placeholder="Researcher Name" />
+          </div>
+          <div class="field signup-only" style="display: none">
+            <label>UNIQUE USERNAME</label>
+            <input type="text" id="username" placeholder="j_doe_chem" />
+          </div>
+
+          <div class="field">
+            <label>EMAIL OR USERNAME</label>
+            <input
+              type="text"
+              id="email"
+              placeholder="email or username"
+              required
+            />
+          </div>
+          <div class="field">
+            <label>SECURE PASSWORD</label>
+            <input
+              type="password"
+              id="password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+
+          <div class="field signup-only" style="display: none">
+            <label>IDENTIFICATION PHOTO (OPTIONAL)</label>
+            <input
+              type="file"
+              id="avatar-file"
+              accept="image/*"
+              style="border: none; padding: 0"
+            />
+          </div>
+
+          <button type="submit" id="submit-btn">Authorize Access</button>
+          <button type="button" id="google-btn" class="google-btn">
+            Sign in with Google
+          </button>
+        </form>
+
+        <footer class="auth-footer">
+          <div id="toggle-auth">
+            Need an account? <span>Request Registration</span>
+          </div>
+          <div id="auth-msg"></div>
+        </footer>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+    <script src="auth.js"></script>
+  </body>
+</html>

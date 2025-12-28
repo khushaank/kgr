@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - KGR Archive</title>
+    <link rel="icon" type="image/png" href="images/KGR.png" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+
+    <style>
+      /* Integrated Settings Layout */
+      .settings-layout {
+        display: flex;
+        max-width: 1200px;
+        margin: 40px auto;
+        min-height: 80vh;
+        gap: 20px;
+      }
+      .settings-sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        border-right: 1px solid var(--card-border);
+      }
+      .sidebar-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding: 0 15px;
+      }
+      .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .nav-item {
+        padding: 12px 15px;
+        border-radius: 8px 0 0 8px;
+        text-decoration: none;
+        color: var(--meta);
+        transition: 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-left: 3px solid transparent;
+        cursor: pointer;
+      }
+      .nav-item:hover,
+      .nav-item.active {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text);
+      }
+      .nav-item.active {
+        border-left-color: var(--accent);
+        color: var(--accent);
+        background: rgba(62, 166, 255, 0.1);
+      }
+      .settings-main {
+        flex: 1;
+        padding: 0 40px;
+      }
+
+      /* Card and Profile UI */
+      .channel-info-card {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 30px;
+        margin-top: 20px;
+      }
+      .profile-row {
+        display: flex;
+        gap: 32px;
+        align-items: flex-start;
+      }
+      .avatar-container {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        cursor: pointer;
+      }
+      #avatar-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #333;
+        border: 2px solid var(--card-border);
+      }
+      .avatar-edit-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: 0.3s;
+      }
+      .avatar-container:hover .avatar-edit-overlay {
+        opacity: 1;
+      }
+
+      /* Username Check UI */
+      .username-wrapper {
+        display: flex;
+        align-items: center;
+        background: #000;
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding-left: 12px;
+        transition: 0.2s;
+      }
+      .username-wrapper:focus-within {
+        border-color: var(--accent);
+      }
+      .username-wrapper input {
+        border: none;
+        background: transparent;
+        color: white;
+        width: 100%;
+        padding: 12px;
+        outline: none;
+      }
+      .status-icon {
+        margin-left: 10px;
+        display: flex;
+        align-items: center;
+      }
+      #username-msg {
+        display: block;
+        margin-top: 5px;
+        font-size: 0.75rem;
+      }
+
+      /* Sectioning */
+      .settings-section {
+        margin-top: 40px;
+        border-top: 1px solid #333;
+        padding-top: 30px;
+      }
+      .account-link-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #111;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #333;
+      }
+
+      /* Professional 2FA UI */
+      #2fa-qr {
+        display: none;
+        margin-top: 30px;
+        text-align: center;
+        background: #fff;
+        padding: 30px;
+        border-radius: 12px;
+        width: fit-content;
+        margin-inline: auto;
+        color: #000;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      #2fa-code {
+        width: 100%;
+        max-width: 240px;
+        text-align: center;
+        font-size: 1.8rem;
+        letter-spacing: 8px;
+        padding: 12px;
+        background: #f1f1f1;
+        border: 2px solid #ddd;
+        color: #000;
+        border-radius: 8px;
+        font-weight: 800;
+        margin-bottom: 15px;
+        outline: none;
+      }
+
+      /* Danger Zone */
+      .danger-zone-card {
+        border: 1px solid var(--error) !important;
+        background: rgba(255, 77, 77, 0.05) !important;
+      }
+      #raw-user-id {
+        font-family: "Roboto Mono", monospace;
+        background: #000;
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid var(--card-border);
+        color: var(--accent);
+        word-break: break-all;
+        margin-top: 10px;
+      }
+
+      /* Mobile Navigation */
+      @media (max-width: 768px) {
+        .settings-layout {
+          flex-direction: column;
+          padding: 0;
+        }
+        .settings-sidebar {
+          width: 100%;
+          border-right: none;
+        }
+        .settings-main {
+          display: none;
+          width: 100%;
+          padding: 20px;
+        }
+        .mobile-settings-back {
+          display: none;
+          align-items: center;
+          gap: 10px;
+          padding: 20px;
+          cursor: pointer;
+          color: var(--accent);
+          border-bottom: 1px solid #333;
+        }
+        body.viewing-setting .settings-sidebar {
+          display: none;
+        }
+        body.viewing-setting .settings-main {
+          display: block;
+        }
+        body.viewing-setting .mobile-settings-back {
+          display: flex;
+        }
+        .profile-row {
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="settings-view">
+    <div id="header-hook"></div>
+
+    <div class="mobile-settings-back" id="mobile-back-btn">
+      <span class="material-icons">arrow_back</span>
+      <span style="font-weight: 500">Back to Settings</span>
+    </div>
+
+    <div class="settings-layout">
+      <aside class="settings-sidebar">
+        <div class="sidebar-title">Settings</div>
+        <nav class="sidebar-nav">
+          <div class="nav-item active" data-section="account-section">
+            <span class="material-icons">person</span>Account
+          </div>
+          <div class="nav-item" data-section="notifications-section">
+            <span class="material-icons">notifications</span>Notifications
+          </div>
+          <div class="nav-item" data-section="privacy-section">
+            <span class="material-icons">security</span>Privacy
+          </div>
+          <div class="nav-item" data-section="advanced-section">
+            <span class="material-icons">settings</span>Advanced
+          </div>
+        </nav>
+      </aside>
+
+      <main class="settings-main">
+        <section id="account-section" class="settings-content">
+          <header class="section-header">
+            <h1>Account</h1>
+            <p class="subtitle">Choose how you appear in the KGR Archive</p>
+          </header>
+          <div class="channel-info-card">
+            <div class="profile-row">
+              <div
+                class="avatar-container"
+                onclick="document.getElementById('avatar-input').click()"
+              >
+                <img id="avatar-preview" src="" alt="Profile" />
+                <div class="avatar-edit-overlay">
+                  <span class="material-icons" style="color: white"
+                    >camera_alt</span
+                  >
+                </div>
+                <input
+                  type="file"
+                  id="avatar-input"
+                  style="display: none"
+                  accept="image/*"
+                />
+              </div>
+              <div style="flex: 1; width: 100%">
+                <form id="settings-form">
+                  <div class="input-group">
+                    <label>Researcher Name</label>
+                    <input
+                      type="text"
+                      id="set-fullname"
+                      required
+                      class="studio-input"
+                      placeholder="Loading..."
+                    />
+                  </div>
+                  <div class="input-group">
+                    <label>Database Username</label>
+                    <div class="username-wrapper">
+                      <span style="color: #888">@</span>
+                      <input
+                        type="text"
+                        id="set-username"
+                        required
+                        placeholder="username"
+                      />
+                      <div id="username-status" class="status-icon"></div>
+                    </div>
+                    <small id="username-msg"></small>
+                  </div>
+                  <button type="submit" id="save-settings" class="primary-btn">
+                    Authorize Changes
+                  </button>
+                </form>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h4>Connected Accounts</h4>
+              <div class="account-link-item">
+                <div style="display: flex; align-items: center; gap: 15px">
+                  <svg width="24" height="24" viewBox="0 0 24 24">
+                    <path
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                      fill="#4285F4"
+                    />
+                    <path
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                      fill="#34A853"
+                    />
+                    <path
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                      fill="#FBBC05"
+                    />
+                    <path
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                      fill="#EA4335"
+                    />
+                  </svg>
+                  <div>
+                    <span style="font-weight: 500; display: block"
+                      >Google Account</span
+                    ><span id="google-link-status">Checking...</span>
+                  </div>
+                </div>
+                <button id="google-unlink-btn" class="secondary-btn" disabled>
+                  Unlink
+                </button>
+              </div>
+            </div>
+            <div class="settings-section">
+              <h4>Security Settings</h4>
+              <div class="input-group">
+                <label for="new-password">New Password (optional)</label>
+                <div
+                  class="password-input-container"
+                  style="position: relative"
+                >
+                  <input
+                    type="password"
+                    id="new-password"
+                    placeholder="••••••••"
+                    class="studio-input"
+                  />
+                  <span
+                    class="toggle-password"
+                    onclick="togglePassword('new-password')"
+                    style="
+                      position: absolute;
+                      right: 10px;
+                      top: 10px;
+                      cursor: pointer;
+                    "
+                    ><span class="material-icons">visibility</span></span
+                  >
+                </div>
+              </div>
+              <button id="change-password-btn" class="primary-btn">
+                Update Password
+              </button>
+            </div>
+            <div class="settings-section">
+              <h4>Two-Factor Authentication</h4>
+              <button id="enable-2fa-btn" class="primary-btn">
+                Enable 2FA
+              </button>
+              <button
+                id="disable-2fa-btn"
+                class="secondary-btn"
+                style="display: none"
+              >
+                Disable 2FA
+              </button>
+              <div id="2fa-qr">
+                <p style="font-weight: 600; margin-bottom: 10px">
+                  Scan with Authenticator App
+                </p>
+                <img
+                  id="qr-code"
+                  src=""
+                  alt="QR Code"
+                  style="
+                    border: 1px solid #eee;
+                    width: 180px;
+                    display: block;
+                    margin: 0 auto 20px;
+                  "
+                />
+                <input
+                  type="text"
+                  id="2fa-code"
+                  placeholder="000 000"
+                  maxlength="6"
+                />
+                <button
+                  id="verify-2fa-btn"
+                  class="primary-btn"
+                  style="width: 100%"
+                >
+                  Verify & Enable
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="notifications-section"
+          class="settings-content"
+          style="display: none"
+        >
+          <header class="section-header">
+            <h1>Notifications</h1>
+            <p class="subtitle">Manage laboratory and publication alerts.</p>
+          </header>
+          <div class="channel-info-card">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 25px;
+              "
+            >
+              <div>
+                <h4>Research Publication</h4>
+                <p style="font-size: 0.9rem">
+                  Notify me when a followed researcher publishes findings.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked
+                style="width: 20px; height: 20px"
+              />
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-top: 20px;
+                border-top: 1px solid #333;
+              "
+            >
+              <div>
+                <h4>Security Alerts</h4>
+                <p style="font-size: 0.9rem">
+                  Receive emails for login attempts or 2FA changes.
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked
+                disabled
+                style="width: 20px; height: 20px"
+              />
+            </div>
+            <button class="primary-btn" style="width: 100%; margin-top: 20px">
+              Authorize Preferences
+            </button>
+          </div>
+        </section>
+
+        <section
+          id="privacy-section"
+          class="settings-content"
+          style="display: none"
+        >
+          <header class="section-header">
+            <h1>Privacy & Policy</h1>
+            <p class="subtitle">KGR Archive Data Governance</p>
+          </header>
+          <div
+            class="channel-info-card"
+            style="background: #1a1a1a; padding: 20px; border-radius: 8px"
+          >
+            <p style="margin-bottom: 15px">
+              <strong style="color: var(--accent)"
+                >128-BIT SECURE ACCESS:</strong
+              >
+              All research contributions are encrypted at rest.
+            </p>
+            <p>
+              <strong>Visibility:</strong> Changing your database username will
+              propagate across all publications.
+            </p>
+          </div>
+        </section>
+
+        <section
+          id="advanced-section"
+          class="settings-content"
+          style="display: none"
+        >
+          <header class="section-header">
+            <h1>Advanced Settings</h1>
+            <p class="subtitle">System identifiers and account management</p>
+          </header>
+          <div class="channel-info-card">
+            <h4>Researcher ID</h4>
+            <p id="raw-user-id">---</p>
+            <div
+              class="settings-section danger-zone-card"
+              style="padding: 20px; border-radius: 8px; margin-top: 30px"
+            >
+              <h4 style="color: var(--error)">Danger Zone</h4>
+              <p style="font-size: 0.9rem; margin-bottom: 20px">
+                Deleting your account will purge your private drafts. Published
+                papers remain archived for research integrity.
+              </p>
+              <button
+                id="request-deletion-btn"
+                style="
+                  background: var(--error);
+                  color: white;
+                  border: none;
+                  padding: 12px 24px;
+                  border-radius: 6px;
+                  font-weight: 700;
+                  cursor: pointer;
+                "
+              >
+                Request Data Purge & Deletion
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="footer-hook"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+    <script src="settings.js"></script>
+  </body>
+</html>

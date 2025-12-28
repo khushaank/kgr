@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secure Verification | KGR Archive</title>
+    <link rel="icon" type="image/png" href="images/KGR.png" />
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="auth-page">
+    <div class="auth-overlay">
+      <main class="auth-card">
+        <header class="auth-header">
+          <div class="brand-tag">KGR — MFA GATEWAY</div>
+          <h1>Identity Verification</h1>
+          <p>
+            Please enter the 6-digit code from your authenticator app to
+            authorize database access.
+          </p>
+        </header>
+
+        <div id="mfa-form">
+          <div class="field">
+            <label>6-DIGIT VERIFICATION CODE</label>
+            <div class="mfa-input-container">
+              <input
+                type="text"
+                id="login-otp"
+                placeholder="000 000"
+                maxlength="6"
+                autocomplete="one-time-code"
+                required
+              />
+            </div>
+          </div>
+
+          <button id="confirm-mfa-btn" class="primary-btn">
+            Authorize Session
+          </button>
+
+          <footer class="auth-footer">
+            <div id="auth-msg"></div>
+            <div class="mfa-help">
+              <span class="material-icons">info</span>
+              <p>Lost your device? Contact KGR administrator for recovery.</p>
+            </div>
+          </footer>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="verify-login.js"></script>
+  </body>
+</html>
