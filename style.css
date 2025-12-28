@@ -6885,7 +6885,7 @@ textarea:focus {
 
 /* Researcher ID Box */
 #raw-user-id {
-  font-family: 'Roboto Mono', monospace;
+  font-family: "Roboto Mono", monospace;
   background: #000 !important;
   padding: 12px !important;
   border-radius: 6px;
@@ -6945,4 +6945,269 @@ textarea:focus {
 .settings-section h4 {
   margin-bottom: 12px;
   font-size: 1rem;
+}
+/* =========================
+   REFINED FINAL CTA DESIGN
+   ========================= */
+
+.final-cta {
+  margin: 80px auto;
+  max-width: 1100px;
+  padding: 0 20px;
+}
+
+.cta-content {
+  /* High-end Vibrant Gradient instead of flat blue */
+  background: linear-gradient(135deg, #3ea6ff 0%, #0072ff 100%);
+  padding: 80px 40px;
+  border-radius: 24px; /* Professional curvature, not massive */
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 114, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Subtle background glow effect */
+.cta-content::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+.cta-content h2 {
+  color: #000; /* High contrast black */
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+
+.cta-content p {
+  color: rgba(0, 0, 0, 0.7); /* Deep grey-black for readability */
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 40px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cta-btn {
+  background: #000;
+  color: #fff;
+  border: none;
+  padding: 16px 32px;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.cta-btn:hover {
+  transform: translateY(-3px);
+  background: #1a1a1a;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+}
+
+.cta-btn:active {
+  transform: scale(0.98);
+}
+
+/* Responsive Scaling */
+@media (max-width: 600px) {
+  .cta-content {
+    padding: 60px 20px;
+    border-radius: 16px;
+  }
+
+  .cta-content h2 {
+    font-size: 2.2rem;
+  }
+
+  .cta-btn {
+    width: 100%;
+  }
+}
+:root {
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.1);
+}
+
+.about-main-wrapper {
+  background: radial-gradient(circle at 50% 0%, #1a1a1a 0%, #000 100%);
+  overflow-x: hidden;
+}
+
+/* Hero Redesign */
+.hero-visual {
+  min-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  position: relative;
+}
+
+.hero-badge {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  padding: 8px 16px;
+  border-radius: 40px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin-bottom: 24px;
+  letter-spacing: 2px;
+}
+
+.hero-title {
+  font-size: clamp(2.5rem, 8vw, 6rem);
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 20px;
+  background: linear-gradient(180deg, #fff 0%, #666 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Metrics Row */
+.metrics-bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  padding: 40px;
+  border-radius: 24px;
+  margin-top: -60px;
+  position: relative;
+  z-index: 10;
+}
+
+.metric-item h2 {
+  font-size: 2.5rem;
+  color: #fff;
+  margin-bottom: 5px;
+}
+.metric-item p {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--meta);
+}
+
+/* Content Sections */
+.info-section {
+  padding: 100px 0;
+}
+
+.grid-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+.pill-list {
+  list-style: none;
+  margin-top: 30px;
+}
+.pill-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 1.1rem;
+  color: #ccc;
+}
+.pill-list .material-icons {
+  color: var(--accent);
+  font-size: 20px;
+}
+
+/* The Charter (Cards) */
+.charter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 50px;
+}
+
+.charter-card {
+  background: #0a0a0a;
+  border: 1px solid #222;
+  padding: 40px;
+  border-radius: 16px;
+  transition: 0.3s ease;
+}
+
+.charter-card:hover {
+  border-color: var(--accent);
+  background: #111;
+  transform: translateY(-5px);
+}
+
+/* Roadmap Horizontal */
+.roadmap-track {
+  display: flex;
+  gap: 40px;
+  overflow-x: auto;
+  padding: 40px 0;
+  scrollbar-width: none;
+}
+
+.roadmap-node {
+  min-width: 300px;
+  border-left: 2px solid #333;
+  padding-left: 24px;
+}
+
+.roadmap-node.active {
+  border-left-color: var(--accent);
+}
+
+/* CTA Section */
+.final-cta {
+  background: var(--accent);
+  color: #000;
+  padding: 80px 40px;
+  border-radius: 32px;
+  text-align: center;
+  margin: 100px 0;
+}
+
+.final-cta h2 {
+  color: #000;
+  font-size: 3rem;
+}
+
+/* Responsive Fixes */
+@media (max-width: 768px) {
+  .grid-split {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .metrics-bar {
+    margin-top: 20px;
+    grid-template-columns: 1fr 1fr;
+  }
+  .hero-title {
+    font-size: 3.5rem;
+  }
 }
