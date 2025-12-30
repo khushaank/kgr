@@ -25,6 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const qrContainer = document.getElementById("2fa-qr");
   const googleStatusText = document.getElementById("google-link-status");
   const googleUnlinkBtn = document.getElementById("google-unlink-btn");
+  const changePasswordBtn = document.getElementById("change-password-btn");
+  const newPasswordInput = document.getElementById("new-password");
 
   /**
    * 1. INITIALIZATION
@@ -46,9 +48,54 @@ document.addEventListener("DOMContentLoaded", () => {
     checkGoogleLinking(user);
     setupUsernameCheck();
     setupDeleteAccountRequest();
+    setupThemeInitializer();
 
     if (document.getElementById("raw-user-id"))
       document.getElementById("raw-user-id").innerText = user.id;
+
+    setupPasswordSecurity();
+    setupMobileBackToTop();
+  }
+
+  function setupPasswordSecurity() {
+    const passInput = document.getElementById("new-password");
+    const bar = document.querySelector("#password-strength .strength-bar");
+    const text = document.querySelector("#password-strength .strength-text");
+
+    if (!passInput) return;
+
+    passInput.oninput = () => {
+      const val = passInput.value;
+      let score = 0;
+      if (val.length > 8) score++;
+      if (/[A-Z]/.test(val)) score++;
+      if (/[0-9]/.test(val)) score++;
+      if (/[^A-Za-z0-9]/.test(val)) score++;
+
+      bar.className = "strength-bar";
+      if (val === "") {
+        text.innerText = "Enter a password";
+      } else if (score < 2) {
+        bar.classList.add("strength-weak");
+        text.innerText = "Security Level: Weak";
+      } else if (score < 4) {
+        bar.classList.add("strength-medium");
+        text.innerText = "Security Level: Medium";
+      } else {
+        bar.classList.add("strength-strong");
+        text.innerText = "Security Level: Strong";
+      }
+    };
+  }
+
+  function setupMobileBackToTop() {
+    const btt = document.getElementById("back-to-top");
+    if (btt) {
+      window.onscroll = () => {
+        btt.style.display = window.pageYOffset > 400 ? "flex" : "none";
+      };
+      btt.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }
 
   /**
@@ -251,6 +298,61 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.reload();
     }
   };
+
+  /**
+   * 9. THEME SELECTOR LOGIC
+   */
+  window.setTheme = (themeName) => {
+    if (window.applyTheme) {
+      window.applyTheme(themeName);
+
+      // Update UI selection state
+      document.querySelectorAll(".theme-option").forEach((opt) => {
+        opt.style.borderColor = "var(--card-border)";
+        opt.classList.remove("active");
+      });
+
+      const activeOpt = document.getElementById(`theme-${themeName}`);
+      if (activeOpt) {
+        activeOpt.style.borderColor = "var(--accent)";
+        activeOpt.classList.add("active");
+      }
+    }
+  };
+
+  function setupThemeInitializer() {
+    const savedTheme = localStorage.getItem("kgr_theme") || "default";
+    window.setTheme(savedTheme);
+  }
+
+  /**
+   * 10. PASSWORD MANAGEMENT
+   */
+  if (changePasswordBtn) {
+    changePasswordBtn.onclick = async () => {
+      const newPassword = newPasswordInput.value;
+      if (newPassword.length < 8) {
+        alert("Security Error: Password must be at least 8 characters.");
+        return;
+      }
+
+      changePasswordBtn.disabled = true;
+      changePasswordBtn.innerText = "Authorizing...";
+
+      const { error } = await supabaseClient.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        alert(`Failed to update password: ${error.message}`);
+      } else {
+        alert("Password updated successfully.");
+        newPasswordInput.value = "";
+      }
+      changePasswordBtn.disabled = false;
+      changePasswordBtn.innerText = "Update Password";
+    };
+  }
 
   // Helpers
   function debounce(fn, delay) {

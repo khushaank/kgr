@@ -45,6 +45,7 @@ async function loadFragments() {
     try {
       const response = await fetch("footer.html");
       footerHook.innerHTML = await response.text();
+      setupBackToTop();
     } catch (err) {
       console.error("Failed to load footer:", err);
     }
@@ -139,11 +140,11 @@ function renderBlogs(blogs, profilesMap = {}) {
     card.className = "yt-card";
     card.innerHTML = `
             <div class="yt-thumbnail">
-                <img src="${imgSrc}" alt="Thumbnail" loading="lazy">
+                <img src="${imgSrc}" alt="Thumbnail" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder-landscape.svg';">
             </div>
             <div class="yt-card-info">
                 <div class="yt-author-avatar">
-                    <img src="${avatarUrl}" alt="Avatar" class="yt-author-avatar-img">
+                    <img src="${avatarUrl}" alt="Avatar" class="yt-author-avatar-img" onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=User&background=random&color=fff';">
                 </div>
                 <div class="yt-details">
                     <div class="title-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
@@ -844,3 +845,23 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+// 12. Global UI Logic
+function setupBackToTop() {
+  const btt = document.getElementById("back-to-top");
+  if (!btt) return;
+
+  window.addEventListener("scroll", () => {
+    if (window.pageYOffset > 300) {
+      btt.style.display = "flex";
+    } else {
+      btt.style.display = "none";
+    }
+  });
+
+  btt.onclick = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+}

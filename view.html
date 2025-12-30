@@ -22,12 +22,22 @@
       <nav class="viewer-nav">
         <button onclick="handleBackNavigation()" class="viewer-back-btn">
           <span class="material-icons">arrow_back</span>
-          <span>Home</span>
+          <span id="back-label">Home</span>
         </button>
-        <button id="speak-btn" class="icon-btn" title="Listen to Article">
-          <span class="material-icons">volume_up</span>
-        </button>
+
+        <div class="viewer-controls">
+          <button id="focus-btn" class="icon-btn" title="Focus Mode">
+            <span class="material-icons">fullscreen</span>
+          </button>
+          <button id="speak-btn" class="icon-btn" title="Listen to Article">
+            <span class="material-icons">volume_up</span>
+          </button>
+        </div>
       </nav>
+
+      <button id="back-to-top" class="back-to-top-btn" title="Back to Top">
+        <span class="material-icons">keyboard_arrow_up</span>
+      </button>
 
       <article id="full-blog-content">
         <div id="viewer-loading-state">

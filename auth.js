@@ -40,6 +40,53 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
+   * 2.1 SECURE MFA MONITOR
+   * Automatically detects if a researcher is signed in via OAuth (like Google)
+   * and requires a secondary MFA challenge.
+   */
+  async function checkMFA() {
+    const {
+      data: { session },
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) return; // Not logged in, stay on auth page
+
+    const {
+      data: { currentLevel, nextLevel },
+    } = await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+
+    // Case A: Identity is partially authorized (AAL1) but requires MFA (AAL2)
+    if (currentLevel === "aal1" && nextLevel === "aal2") {
+      const { data: factors, error: mfaError } =
+        await supabaseClient.auth.mfa.listFactors();
+
+      if (mfaError) {
+        console.error("MFA Factor Lookup Error:", mfaError);
+        return;
+      }
+
+      const activeFactor =
+        factors.totp && factors.totp.find((f) => f.status === "verified");
+
+      if (activeFactor) {
+        sessionStorage.setItem("mfa_factor_id", activeFactor.id);
+        showMsg("MFA Challenge required. Redirecting...", "success");
+        setTimeout(() => {
+          window.location.href = "verify-login.html";
+        }, 800);
+        return;
+      }
+    }
+
+    // Case B: Identity is fully authorized (AAL2) or no MFA is set up
+    // Allow entry into the KGR Archive
+    window.location.href = "index.html";
+  }
+
+  // Execute check on load to handle OAuth redirects
+  checkMFA();
+
+  /**
    * UI TOGGLE LOGIC
    * Switches between "Authorize Access" (Login) and "Request Registration" (Signup)
    */
@@ -97,7 +144,7 @@ window.addEventListener("DOMContentLoaded", () => {
       await handleAuthSubmission();
     };
   }
-  
+
   async function handleAuthSubmission() {
     const emailVal = emailInput.value.trim();
     const passwordVal = passwordInput.value;
@@ -213,7 +260,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: window.location.origin + "/index.html",
+          redirectTo: window.location.origin + "/auth.html",
           queryParams: { access_type: "offline", prompt: "consent" },
         },
       });

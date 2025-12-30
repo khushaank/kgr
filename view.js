@@ -10,12 +10,12 @@ marked.setOptions({
 
 // Custom renderer for YouTube links
 const renderer = new marked.Renderer();
-renderer.link = function(href, title, text) {
-  if (typeof href === 'string' && href.includes('youtube.com/watch?v=')) {
-    const id = href.split('v=')[1].split('&')[0];
+renderer.link = function (href, title, text) {
+  if (typeof href === "string" && href.includes("youtube.com/watch?v=")) {
+    const id = href.split("v=")[1].split("&")[0];
     return `<iframe width="560" height="315" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`;
   }
-  return `<a href="${href || '#'}" title="${title || ''}">${text}</a>`;
+  return `<a href="${href || "#"}" title="${title || ""}">${text}</a>`;
 };
 marked.setOptions({ renderer });
 async function fetchBlogContent() {
@@ -95,7 +95,6 @@ function renderPaper(blog) {
         </figure>
 
         <div class="viewer-footer-tag">
-            <span>KGR INTERNATIONAL RESEARCH GROUP</span>
             <span>END OF ARCHIVE RECORD</span>
         </div>
     `;
@@ -109,7 +108,12 @@ function renderPaper(blog) {
     button.onclick = () => {
       navigator.clipboard.writeText(pre.textContent).then(() => {
         button.innerHTML = '<span class="material-icons">check</span>';
-        setTimeout(() => button.innerHTML = '<span class="material-icons">content_copy</span>', 2000);
+        setTimeout(
+          () =>
+            (button.innerHTML =
+              '<span class="material-icons">content_copy</span>'),
+          2000
+        );
       });
     };
     pre.style.position = "relative";
@@ -210,10 +214,172 @@ function initTextToSpeech() {
 }
 
 function handleBackNavigation() {
-  window.location.href = 'index.html';
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get("ref");
+
+  // Priority 1: Explicit 'ref' param
+  if (ref === "contribution") {
+    window.location.href = "contributions.html";
+    return;
+  }
+  if (ref === "setting") {
+    window.location.href = "settings.html";
+    return;
+  }
+  if (ref === "viewer") {
+    window.location.href = "index.html";
+    // Ideally we might go back to previous viewer, requires history tracking
+    return;
+  }
+
+  // Priority 2: Document Referrer (if internal)
+  if (document.referrer && document.referrer.includes(window.location.host)) {
+    // If we came from create, maybe dont go back there directly to avoid losing state?
+    // actually history.back() is best for "go back to where user came from"
+    history.back();
+    return;
+  }
+
+  // Fallback
+  window.location.href = "index.html";
 }
+
+// Update the back button label based on context
+function updateNavigationUI() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get("ref");
+  const btnLabel = document.getElementById("back-label");
+
+  if (btnLabel) {
+    if (ref === "contribution") btnLabel.textContent = "Back to Contributions";
+    else if (ref === "setting") btnLabel.textContent = "Back to Settings";
+    else if (
+      document.referrer &&
+      document.referrer.includes(window.location.host)
+    ) {
+      btnLabel.textContent = "Go Back";
+    } else btnLabel.textContent = "Home";
+  }
+}
+
+// Focus Mode: Toggle Fullscreen & Body Class
+function initFocusMode() {
+  const btn = document.getElementById("focus-btn");
+  if (!btn) return;
+
+  // Check state on load (e.g. if mistakenly persisted, though less likely with standard fullscreen api)
+
+  btn.onclick = () => {
+    document.body.classList.toggle("focus-mode-active");
+
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+      btn.innerHTML = '<span class="material-icons">fullscreen_exit</span>';
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        btn.innerHTML = '<span class="material-icons">fullscreen</span>';
+      }
+    }
+  };
+
+  // Listen for fullscreen change (e.g. user pressed ESC)
+  document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+      document.body.classList.remove("focus-mode-active");
+      btn.innerHTML = '<span class="material-icons">fullscreen</span>';
+    }
+  });
+}
+
+// Back to Top: Smooth Scroll
+function initBackToTop() {
+  const btn = document.getElementById("back-to-top");
+  if (!btn) return;
+
+  window.onscroll = () => {
+    if (
+      document.body.scrollTop > 300 ||
+      document.documentElement.scrollTop > 300
+    ) {
+      btn.classList.add("show");
+    } else {
+      btn.classList.remove("show");
+    }
+  };
+
+  btn.onclick = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+}
+
+// 5. View Counting Logic
+async function incrementViewCount(blogId) {
+  const supabaseClient = window.supabaseClient;
+  if (!supabaseClient || !blogId) return;
+
+  // Validate UUID format to prevent SQL errors like "invalid input syntax for type uuid"
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  if (uuidRegex.test(blogId)) {
+    // Try to use a stored procedure for atomic increment
+    const { error } = await supabaseClient.rpc("increment_view", {
+      row_id: blogId,
+    });
+    if (!error) return; // RPC success
+    console.warn("RPC failed, falling back to direct update:", error.message);
+  } else {
+    console.warn(`Skipping RPC: ID "${blogId}" is not a valid UUID.`);
+  }
+
+  // Fallback (Direct Update)
+  // This works even for non-UUIDs if the DB column type allows it, or if we skip RPC
+  const { data } = await supabaseClient
+    .from("blogs")
+    .select("views")
+    .eq("id", blogId)
+    .single();
+  if (data) {
+    await supabaseClient
+      .from("blogs")
+      .update({ views: (data.views || 0) + 1 })
+      .eq("id", blogId);
+  }
+}
+
+/* 
+   SUPABASE SQL HELP
+   Run this in your Supabase SQL Editor to enable view counting:
+
+   -- 1. Add views column
+   ALTER TABLE blogs ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
+
+   -- 2. Create increment function
+   CREATE OR REPLACE FUNCTION increment_view(row_id UUID)
+   RETURNS VOID AS $$
+   BEGIN
+     UPDATE blogs
+     SET views = views + 1
+     WHERE id = row_id;
+   END;
+   $$ LANGUAGE plpgsql;
+*/
 
 document.addEventListener("DOMContentLoaded", () => {
   fetchBlogContent();
   initTextToSpeech();
+  updateNavigationUI();
+  initFocusMode();
+  initBackToTop();
+
+  // Track View
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("id");
+  if (id) incrementViewCount(id);
 });

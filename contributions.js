@@ -18,6 +18,13 @@ async function fetchUserContributions() {
     return;
   }
 
+  // Show Skeleton Loader immediately
+  container.innerHTML = `
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+  `;
+
   try {
     const {
       data: { user },
@@ -58,55 +65,83 @@ function renderContributions(items) {
     const card = document.createElement("div");
     card.className = "yt-card contribution-card";
 
+    const thumbUrl = item.image_url || "images/placeholder-landscape.svg";
+    const avatarUrl = item.author_avatar || "images/default-avatar.png";
+    const dateStr = new Date(item.created_at).toLocaleDateString();
+
     card.innerHTML = `
       <div class="yt-thumbnail">
-        <img src="${
-          item.image_url || "https://picsum.photos/seed/" + item.id + "/320/180"
-        }" alt="Thumbnail">
-        ${isDraft ? `<span class="status-badge badge-draft">DRAFT</span>` : ""}
+        <img src="${thumbUrl}" alt="Thumbnail" onerror="this.onerror=null;this.src='images/placeholder-landscape.svg';">
+        <div class="status-selector-wrapper">
+          <span class="status-badge ${isDraft ? "draft" : "published"}">${
+      isDraft ? "DRAFT" : "PUBLISHED"
+    }</span>
+        </div>
       </div>
-      <div class="yt-card-info" style="overflow: visible;">
-        <div class="yt-details" style="overflow: visible;">
-          <div class="title-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; overflow: visible;">
-            <h3 class="yt-title" style="flex: 1; margin: 0;">${item.title}</h3>
-            <div class="menu-container" style="position: relative; flex-shrink: 0;">
-              <button class="menu-dots-btn" onclick="toggleCardMenu(event, '${
-                item.id
-              }')">
-                <span class="material-icons">more_vert</span>
-              </button>
-              <div id="menu-${item.id}" class="card-action-menu">
-                <button onclick="editArticle(event, '${item.id}')" class="menu-action">
-                  <span class="material-icons">edit</span> Edit
-                </button>
-                <button onclick="followArticle(event, '${item.id}')" class="menu-action">
-                  <span class="material-icons">person_add</span> Follow
-                </button>
-                <button onclick="shareArticle(event, '${
-                  item.id
-                }')" class="menu-action">
-                  <span class="material-icons">share</span> Share
-                </button>
-                <div class="menu-divider"></div>
-                <button onclick="confirmDelete(event, '${
-                  item.id
-                }', '${item.title.replace(
+
+      <div class="yt-card-info">
+        <div class="yt-author-avatar">
+          <img src="${avatarUrl}" alt="Avatar" class="yt-author-avatar-img" onerror="this.src='https://ui-avatars.com/api/?name=${
+      item.author || "User"
+    }&background=random'">
+        </div>
+
+        <div class="yt-details">
+          <h3 class="yt-title" title="${item.title}">${item.title}</h3>
+          <div class="yt-meta-block">
+            <span class="yt-meta-author">${
+              item.author || "Unknown Author"
+            }</span>
+          </div>
+          <div class="yt-meta-block">
+            <span class="yt-meta-views">${item.views || 0} views</span>
+            <span class="yt-meta-separator">•</span>
+            <span class="yt-meta-date">${dateStr}</span>
+          </div>
+        </div>
+
+        <div class="menu-container">
+          <button class="menu-dots-btn" onclick="toggleCardMenu(event, '${
+            item.id
+          }')">
+            <span class="material-icons">more_vert</span>
+          </button>
+          <div id="menu-${item.id}" class="card-action-menu">
+            <button onclick="editArticle(event, '${
+              item.id
+            }')" class="menu-action">
+              <span class="material-icons">edit</span> Edit
+            </button>
+            <button onclick="shareArticle(event, '${
+              item.id
+            }')" class="menu-action">
+              <span class="material-icons">share</span> Share
+            </button>
+            <div class="menu-divider"></div>
+            <button onclick="updateStatus(event, '${item.id}', '${
+      isDraft ? "published" : "draft"
+    }')" class="menu-action">
+              <span class="material-icons">${
+                isDraft ? "public" : "lock"
+              }</span> ${isDraft ? "Publish" : "Unpublish"}
+            </button>
+            <button onclick="confirmDelete(event, '${
+              item.id
+            }', '${item.title.replace(
       /'/g,
       "\\'"
     )}')" class="menu-action delete-text">
-                  <span class="material-icons">delete</span> Delete
-                </button>
-              </div>
-            </div>
+              <span class="material-icons">delete</span> Delete
+            </button>
           </div>
-          <p class="yt-meta-stats" style="margin-top: 4px;">${new Date(
-            item.created_at
-          ).toLocaleDateString()}</p>
         </div>
       </div>`;
 
     card.onclick = (e) => {
-      if (!e.target.closest(".menu-container")) {
+      if (
+        !e.target.closest(".menu-container") &&
+        !e.target.closest(".status-selector-wrapper")
+      ) {
         window.location.href = `view.html?id=${item.id}`;
       }
     };
@@ -164,6 +199,32 @@ async function executeDelete(id) {
   }
 }
 
+// 4.1 Update Status logic
+async function updateStatus(event, id, newStatus) {
+  event.stopPropagation();
+  const supabaseClient = window.supabaseClient;
+
+  const { error } = await supabaseClient
+    .from("blogs")
+    .update({ status: newStatus })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Status Update Error:", error.message);
+    alert("Failed to update status.");
+  } else {
+    // Show a small toast or just refresh
+    console.log(`Status updated to ${newStatus}`);
+    // Optional: add a visual confirmation
+    const select = event.target;
+    select.style.borderColor = "var(--success)";
+    setTimeout(() => {
+      select.style.borderColor = "";
+      fetchUserContributions(); // Refresh to update badges if any
+    }, 1000);
+  }
+}
+
 // 5. Menu Interaction logic
 function toggleCardMenu(event, id) {
   event.stopPropagation();
@@ -194,14 +255,14 @@ function shareArticle(event, id) {
   event.stopPropagation();
   const url = `${window.location.origin}/view.html?id=${id}`;
   navigator.clipboard.writeText(url).then(() => {
-    alert('Link copied to clipboard!');
+    alert("Link copied to clipboard!");
   });
 }
 
 function followArticle(event, id) {
   event.preventDefault();
   event.stopPropagation();
-  alert('Followed!');
+  alert("Followed!");
 }
 
 // Close menus when clicking outside

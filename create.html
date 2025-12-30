@@ -22,8 +22,16 @@
         <h1 class="mono">Research Studio</h1>
       </div>
       <div class="action-buttons">
-        <button id="draft-btn" class="secondary-btn">Save Draft</button>
-        <button id="publish-btn" class="primary-btn">Publish</button>
+        <div class="publish-split-container">
+          <button id="main-save-btn">Publish</button>
+          <div class="dropdown-trigger" id="save-dropdown-trigger">
+            <span class="material-icons">arrow_drop_down</span>
+            <div class="save-status-dropdown" id="save-status-dropdown">
+              <button data-status="published">Publish Now</button>
+              <button data-status="draft">Save as Draft</button>
+            </div>
+          </div>
+        </div>
       </div>
     </nav>
 
@@ -61,10 +69,18 @@
           </div>
           <div class="editor-toolbar">
             <div class="toolbar-group">
-              <button type="button" onclick="formatText('bold')" title="Bold (Ctrl+B)">
+              <button
+                type="button"
+                onclick="formatText('bold')"
+                title="Bold (Ctrl+B)"
+              >
                 <span class="material-icons">format_bold</span>
               </button>
-              <button type="button" onclick="formatText('italic')" title="Italic (Ctrl+I)">
+              <button
+                type="button"
+                onclick="formatText('italic')"
+                title="Italic (Ctrl+I)"
+              >
                 <span class="material-icons">format_italic</span>
               </button>
             </div>
@@ -109,7 +125,11 @@
               <button type="button" onclick="insertGraph()" title="Add Graph">
                 <span class="material-icons">bar_chart</span>
               </button>
-              <button type="button" onclick="insertAIResult()" title="AI Insight">
+              <button
+                type="button"
+                onclick="insertAIResult()"
+                title="AI Insight"
+              >
                 <span class="material-icons">auto_awesome</span>
               </button>
             </div>
@@ -145,13 +165,27 @@
         <div class="studio-card">
           <label>TAGS</label>
           <div class="chip-container" id="tag-chip-container">
-            <input type="text" id="tag-input" placeholder="Add tags (e.g. AI, Physics)" />
-            <div id="tag-suggestions" class="tag-suggestions" style="display: none;"></div>
+            <input
+              type="text"
+              id="tag-input"
+              placeholder="Add tags (e.g. AI, Physics)"
+            />
+            <div
+              id="tag-suggestions"
+              class="tag-suggestions"
+              style="display: none"
+            ></div>
           </div>
           <div id="tag-count-indicator" class="tag-limit-indicator">
             0/3 tags used
           </div>
-          <button id="show-trending-btn" class="secondary-btn" style="margin-top: 10px;">Show Trending</button>
+          <button
+            id="show-trending-btn"
+            class="secondary-btn"
+            style="margin-top: 10px"
+          >
+            Show Trending
+          </button>
         </div>
 
         <div class="studio-card">
@@ -163,6 +197,9 @@
       </aside>
     </main>
 
+    <button id="back-to-top" title="Back to Top">
+      <span class="material-icons">arrow_upward</span>
+    </button>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

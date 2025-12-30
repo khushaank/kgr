@@ -71,20 +71,49 @@ window.addEventListener("DOMContentLoaded", async () => {
  * Sets up buttons and event listeners for creating a new post
  */
 function initCreateMode(user) {
-  const draftBtn = document.getElementById("draft-btn");
-  const publishBtn = document.getElementById("publish-btn");
+  const mainSaveBtn = document.getElementById("main-save-btn");
+  const dropdownTrigger = document.getElementById("save-dropdown-trigger");
+  const statusDropdown = document.getElementById("save-status-dropdown");
+  let currentStatus = "published";
 
-  draftBtn.onclick = () => handleSubmission("draft", user);
-  publishBtn.onclick = () => handleSubmission("published", user);
+  // Toggle Dropdown
+  dropdownTrigger.onclick = (e) => {
+    e.stopPropagation();
+    statusDropdown.classList.toggle("show");
+  };
 
-  // Auto-save-on-close logic (creates a draft if user leaves)
-  window.addEventListener("beforeunload", (e) => {
-    const title = document.getElementById("title").value;
-    const content = document.getElementById("content").value;
-    if (title.length > 5 || content.length > 10) {
+  document.addEventListener("click", () => {
+    statusDropdown.classList.remove("show");
+  });
+
+  // Handle Status Selection
+  statusDropdown.querySelectorAll("button").forEach((btn) => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const status = btn.getAttribute("data-status");
+      currentStatus = status;
+      mainSaveBtn.innerText = status === "published" ? "Publish" : "Save Draft";
+      statusDropdown.classList.remove("show");
+    };
+  });
+
+  mainSaveBtn.onclick = () => handleSubmission(currentStatus, user);
+
+  // Auto-save logic
+  window.addEventListener("beforeunload", () => {
+    if (!isNavigatingAway) {
       handleSubmission("draft", user);
     }
   });
+
+  // Back to Top Logic
+  const btt = document.getElementById("back-to-top");
+  if (btt) {
+    window.onscroll = () => {
+      btt.style.display = window.pageYOffset > 300 ? "flex" : "none";
+    };
+    btt.onclick = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 }
 
 // --- 3. PERSISTENCE LAYER (LOAD/EDIT/UPDATE) ---
@@ -133,16 +162,31 @@ async function loadBlogForEditing(blogId, userId) {
     }
 
     // 5. Override Button Logic for Update vs Insert
-    const draftBtn = document.getElementById("draft-btn");
-    const publishBtn = document.getElementById("publish-btn");
+    const mainSaveBtn = document.getElementById("main-save-btn");
+    const dropdownTrigger = document.getElementById("save-dropdown-trigger");
+    const statusDropdown = document.getElementById("save-status-dropdown");
+    let currentStatus = blog.status || "published";
 
-    draftBtn.innerHTML =
-      '<span class="material-icons">save</span> Update Draft';
-    publishBtn.innerHTML =
-      '<span class="material-icons">publish</span> Update Research';
+    mainSaveBtn.innerText =
+      currentStatus === "published" ? "Update Research" : "Update Draft";
 
-    draftBtn.onclick = () => handleUpdate(blogId, "draft", userId);
-    publishBtn.onclick = () => handleUpdate(blogId, "published", userId);
+    dropdownTrigger.onclick = (e) => {
+      e.stopPropagation();
+      statusDropdown.classList.toggle("show");
+    };
+
+    statusDropdown.querySelectorAll("button").forEach((btn) => {
+      btn.onclick = (e) => {
+        e.stopPropagation();
+        const status = btn.getAttribute("data-status");
+        currentStatus = status;
+        mainSaveBtn.innerText =
+          status === "published" ? "Update Research" : "Update Draft";
+        statusDropdown.classList.remove("show");
+      };
+    });
+
+    mainSaveBtn.onclick = () => handleUpdate(blogId, currentStatus, userId);
 
     // Update beforeunload for edit context
     window.addEventListener("beforeunload", () => {
@@ -557,9 +601,10 @@ async function handleSubmission(statusStr, user) {
     console.error("Archival Failed:", err);
     alert(`Failed to archive: ${err.message}`);
     isNavigatingAway = false; // Error occurred, turn auto-save back on
-    btn.disabled = false;
-    btn.textContent =
-      statusStr === "published" ? "Publish Research" : "Save Draft";
+    const mainSaveBtn = document.getElementById("main-save-btn");
+    mainSaveBtn.disabled = false;
+    mainSaveBtn.textContent =
+      statusStr === "published" ? "Update Research" : "Update Draft";
   }
 }
 
@@ -572,10 +617,8 @@ async function handleUpdate(blogId, statusStr, userId) {
   const content = document.getElementById("content").value.trim();
 
   // UI Feedback: Disable buttons while processing
-  const draftBtn = document.getElementById("draft-btn");
-  const publishBtn = document.getElementById("publish-btn");
-  const originalDraftText = draftBtn.innerHTML;
-  const originalPublishText = publishBtn.innerHTML;
+  const mainSaveBtn = document.getElementById("main-save-btn");
+  const originalText = mainSaveBtn.innerText;
 
   if (!content) {
     alert("Research body cannot be empty.");
@@ -583,8 +626,8 @@ async function handleUpdate(blogId, statusStr, userId) {
     return;
   }
 
-  draftBtn.disabled = true;
-  publishBtn.disabled = true;
+  mainSaveBtn.disabled = true;
+  mainSaveBtn.innerText = "Saving...";
 
   try {
     let finalImageUrl = null;
@@ -628,13 +671,10 @@ async function handleUpdate(blogId, statusStr, userId) {
     window.location.href = "contributions.html";
   } catch (err) {
     console.error("Update Failed:", err);
-    alert(`Failed to update record: ${err.message}`);
-
+    alert(`Failed to update: ${err.message}`);
+    mainSaveBtn.disabled = false;
+    mainSaveBtn.innerText = originalText;
     isNavigatingAway = false; // Error occurred, turn auto-save back on
-    draftBtn.disabled = false;
-    publishBtn.disabled = false;
-    draftBtn.innerHTML = originalDraftText;
-    publishBtn.innerHTML = originalPublishText;
   }
 }
 

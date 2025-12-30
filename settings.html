@@ -14,237 +14,6 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
-
-    <style>
-      /* Integrated Settings Layout */
-      .settings-layout {
-        display: flex;
-        max-width: 1200px;
-        margin: 40px auto;
-        min-height: 80vh;
-        gap: 20px;
-      }
-      .settings-sidebar {
-        width: 280px;
-        flex-shrink: 0;
-        border-right: 1px solid var(--card-border);
-      }
-      .sidebar-title {
-        font-size: 24px;
-        font-weight: 700;
-        margin-bottom: 20px;
-        padding: 0 15px;
-      }
-      .sidebar-nav {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-      }
-      .nav-item {
-        padding: 12px 15px;
-        border-radius: 8px 0 0 8px;
-        text-decoration: none;
-        color: var(--meta);
-        transition: 0.3s;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border-left: 3px solid transparent;
-        cursor: pointer;
-      }
-      .nav-item:hover,
-      .nav-item.active {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--text);
-      }
-      .nav-item.active {
-        border-left-color: var(--accent);
-        color: var(--accent);
-        background: rgba(62, 166, 255, 0.1);
-      }
-      .settings-main {
-        flex: 1;
-        padding: 0 40px;
-      }
-
-      /* Card and Profile UI */
-      .channel-info-card {
-        background: var(--card-bg);
-        border: 1px solid var(--card-border);
-        border-radius: 12px;
-        padding: 30px;
-        margin-top: 20px;
-      }
-      .profile-row {
-        display: flex;
-        gap: 32px;
-        align-items: flex-start;
-      }
-      .avatar-container {
-        position: relative;
-        width: 100px;
-        height: 100px;
-        cursor: pointer;
-      }
-      #avatar-preview {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        object-fit: cover;
-        background: #333;
-        border: 2px solid var(--card-border);
-      }
-      .avatar-edit-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: 0.3s;
-      }
-      .avatar-container:hover .avatar-edit-overlay {
-        opacity: 1;
-      }
-
-      /* Username Check UI */
-      .username-wrapper {
-        display: flex;
-        align-items: center;
-        background: #000;
-        border: 1px solid #333;
-        border-radius: 6px;
-        padding-left: 12px;
-        transition: 0.2s;
-      }
-      .username-wrapper:focus-within {
-        border-color: var(--accent);
-      }
-      .username-wrapper input {
-        border: none;
-        background: transparent;
-        color: white;
-        width: 100%;
-        padding: 12px;
-        outline: none;
-      }
-      .status-icon {
-        margin-left: 10px;
-        display: flex;
-        align-items: center;
-      }
-      #username-msg {
-        display: block;
-        margin-top: 5px;
-        font-size: 0.75rem;
-      }
-
-      /* Sectioning */
-      .settings-section {
-        margin-top: 40px;
-        border-top: 1px solid #333;
-        padding-top: 30px;
-      }
-      .account-link-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background: #111;
-        padding: 15px;
-        border-radius: 8px;
-        border: 1px solid #333;
-      }
-
-      /* Professional 2FA UI */
-      #2fa-qr {
-        display: none;
-        margin-top: 30px;
-        text-align: center;
-        background: #fff;
-        padding: 30px;
-        border-radius: 12px;
-        width: fit-content;
-        margin-inline: auto;
-        color: #000;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-      }
-      #2fa-code {
-        width: 100%;
-        max-width: 240px;
-        text-align: center;
-        font-size: 1.8rem;
-        letter-spacing: 8px;
-        padding: 12px;
-        background: #f1f1f1;
-        border: 2px solid #ddd;
-        color: #000;
-        border-radius: 8px;
-        font-weight: 800;
-        margin-bottom: 15px;
-        outline: none;
-      }
-
-      /* Danger Zone */
-      .danger-zone-card {
-        border: 1px solid var(--error) !important;
-        background: rgba(255, 77, 77, 0.05) !important;
-      }
-      #raw-user-id {
-        font-family: "Roboto Mono", monospace;
-        background: #000;
-        padding: 12px;
-        border-radius: 6px;
-        border: 1px solid var(--card-border);
-        color: var(--accent);
-        word-break: break-all;
-        margin-top: 10px;
-      }
-
-      /* Mobile Navigation */
-      @media (max-width: 768px) {
-        .settings-layout {
-          flex-direction: column;
-          padding: 0;
-        }
-        .settings-sidebar {
-          width: 100%;
-          border-right: none;
-        }
-        .settings-main {
-          display: none;
-          width: 100%;
-          padding: 20px;
-        }
-        .mobile-settings-back {
-          display: none;
-          align-items: center;
-          gap: 10px;
-          padding: 20px;
-          cursor: pointer;
-          color: var(--accent);
-          border-bottom: 1px solid #333;
-        }
-        body.viewing-setting .settings-sidebar {
-          display: none;
-        }
-        body.viewing-setting .settings-main {
-          display: block;
-        }
-        body.viewing-setting .mobile-settings-back {
-          display: flex;
-        }
-        .profile-row {
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-        }
-      }
-    </style>
   </head>
 
   <body class="settings-view">
@@ -268,6 +37,9 @@
           <div class="nav-item" data-section="privacy-section">
             <span class="material-icons">security</span>Privacy
           </div>
+          <div class="nav-item" data-section="display-section">
+            <span class="material-icons">palette</span>Display
+          </div>
           <div class="nav-item" data-section="advanced-section">
             <span class="material-icons">settings</span>Advanced
           </div>
@@ -286,7 +58,11 @@
                 class="avatar-container"
                 onclick="document.getElementById('avatar-input').click()"
               >
-                <img id="avatar-preview" src="" alt="Profile" />
+                <img
+                  id="avatar-preview"
+                  src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iIzMzMyIgZD0iTTEyIDEyYzIuMjEgMCA0LTEuNzkgNC00cy0xLjc5LTQtNC00LTQgMS43OS00IDQgMS43OSA0IDQgNHptMCAyYy0yLjY3IDAtOCAxLjM0LTggNHYyaDE2di0yYzAtMi42Ni01LjMzLTQtOC00eiIvPjwvc3ZnPg=="
+                  alt="Profile"
+                />
                 <div class="avatar-edit-overlay">
                   <span class="material-icons" style="color: white"
                     >camera_alt</span
@@ -359,7 +135,11 @@
                     ><span id="google-link-status">Checking...</span>
                   </div>
                 </div>
-                <button id="google-unlink-btn" class="secondary-btn" disabled>
+                <button
+                  id="google-unlink-btn"
+                  class="secondary-btn"
+                  style="display: none"
+                >
                   Unlink
                 </button>
               </div>
@@ -368,10 +148,7 @@
               <h4>Security Settings</h4>
               <div class="input-group">
                 <label for="new-password">New Password (optional)</label>
-                <div
-                  class="password-input-container"
-                  style="position: relative"
-                >
+                <div class="password-input-container">
                   <input
                     type="password"
                     id="new-password"
@@ -381,14 +158,13 @@
                   <span
                     class="toggle-password"
                     onclick="togglePassword('new-password')"
-                    style="
-                      position: absolute;
-                      right: 10px;
-                      top: 10px;
-                      cursor: pointer;
-                    "
-                    ><span class="material-icons">visibility</span></span
                   >
+                    <span class="material-icons">visibility</span>
+                  </span>
+                </div>
+                <div class="password-strength-meter" id="password-strength">
+                  <div class="strength-bar"></div>
+                  <span class="strength-text">Enter a password</span>
                 </div>
               </div>
               <button id="change-password-btn" class="primary-btn">
@@ -397,7 +173,11 @@
             </div>
             <div class="settings-section">
               <h4>Two-Factor Authentication</h4>
-              <button id="enable-2fa-btn" class="primary-btn">
+              <button
+                id="enable-2fa-btn"
+                class="primary-btn"
+                style="display: none"
+              >
                 Enable 2FA
               </button>
               <button
@@ -407,18 +187,20 @@
               >
                 Disable 2FA
               </button>
-              <div id="2fa-qr">
+              <div id="2fa-qr" style="display: none">
                 <p style="font-weight: 600; margin-bottom: 10px">
                   Scan with Authenticator App
                 </p>
                 <img
                   id="qr-code"
-                  src=""
+                  src="data:image/png;base64,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"
                   alt="QR Code"
                   style="
-                    border: 1px solid #eee;
+                    border: 1px solid var(--card-border);
                     width: 180px;
                     display: block;
+                    background: white;
+                    padding: 10px;
                     margin: 0 auto 20px;
                   "
                 />
@@ -509,7 +291,7 @@
           </header>
           <div
             class="channel-info-card"
-            style="background: #1a1a1a; padding: 20px; border-radius: 8px"
+            style="padding: 20px; border-radius: 8px"
           >
             <p style="margin-bottom: 15px">
               <strong style="color: var(--accent)"
@@ -521,6 +303,112 @@
               <strong>Visibility:</strong> Changing your database username will
               propagate across all publications.
             </p>
+          </div>
+        </section>
+
+        <section
+          id="display-section"
+          class="settings-content"
+          style="display: none"
+        >
+          <header class="section-header">
+            <h1>Display & Appearance</h1>
+            <p class="subtitle">Customize your KGR Archive experience</p>
+          </header>
+          <div class="channel-info-card">
+            <h4>Application Theme</h4>
+            <p
+              style="margin-bottom: 20px; font-size: 0.9rem; color: var(--meta)"
+            >
+              Choose a visual theme for the laboratory terminal.
+            </p>
+
+            <div
+              class="theme-grid"
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 16px;
+              "
+            >
+              <div
+                class="theme-option active"
+                onclick="setTheme('default')"
+                id="theme-default"
+                style="
+                  cursor: pointer;
+                  padding: 20px;
+                  border: 1px solid var(--accent);
+                  border-radius: 12px;
+                  background: var(--card-bg);
+                  text-align: center;
+                "
+              >
+                <div
+                  style="
+                    width: 48px;
+                    height: 48px;
+                    background: #0f0f0f;
+                    border-radius: 50%;
+                    margin: 0 auto 12px;
+                    border: 1px solid var(--card-border);
+                  "
+                ></div>
+                <span style="font-weight: 600">Deep Space</span>
+              </div>
+              <div
+                class="theme-option"
+                onclick="setTheme('grey-scale')"
+                id="theme-grey-scale"
+                style="
+                  cursor: pointer;
+                  padding: 20px;
+                  border: 1px solid var(--card-border);
+                  border-radius: 12px;
+                  background: var(--card-bg);
+                  text-align: center;
+                "
+              >
+                <div
+                  style="
+                    width: 48px;
+                    height: 48px;
+                    background: #333;
+                    border-radius: 50%;
+                    margin: 0 auto 12px;
+                    border: 1px solid var(--meta);
+                  "
+                ></div>
+                <span style="font-weight: 600">Lab Grey</span>
+              </div>
+              <div
+                class="theme-option"
+                onclick="setTheme('white')"
+                id="theme-white"
+                style="
+                  cursor: pointer;
+                  padding: 20px;
+                  border: 1px solid var(--card-border);
+                  border-radius: 12px;
+                  background: var(--card-bg);
+                  color: var(--text);
+                  text-align: center;
+                  box-shadow: var(--shadow);
+                "
+              >
+                <div
+                  style="
+                    width: 48px;
+                    height: 48px;
+                    background: #fff;
+                    border-radius: 50%;
+                    margin: 0 auto 12px;
+                    border: 1px solid #ccc;
+                  "
+                ></div>
+                <span style="font-weight: 600">Light Mode</span>
+              </div>
+            </div>
           </div>
         </section>
 
