@@ -3,6 +3,45 @@
  * Features: Database safety checks, Action Menus, and Deletion Logic
  */
 
+// Helper: Format view count like YouTube (1K, 1M, etc.)
+function formatViewCount(views) {
+  const num = Number(views) || 0;
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1) + "M";
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + "K";
+  }
+  return num.toString();
+}
+
+// Helper: Relative time like YouTube ("1 hour ago", "2 days ago")
+function formatRelativeTime(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+  const diffWeek = Math.floor(diffDay / 7);
+  const diffMonth = Math.floor(diffDay / 30);
+  const diffYear = Math.floor(diffDay / 365);
+
+  if (diffYear >= 1)
+    return diffYear === 1 ? "1 year ago" : `${diffYear} years ago`;
+  if (diffMonth >= 1)
+    return diffMonth === 1 ? "1 month ago" : `${diffMonth} months ago`;
+  if (diffWeek >= 1)
+    return diffWeek === 1 ? "1 week ago" : `${diffWeek} weeks ago`;
+  if (diffDay >= 1) return diffDay === 1 ? "1 day ago" : `${diffDay} days ago`;
+  if (diffHour >= 1)
+    return diffHour === 1 ? "1 hour ago" : `${diffHour} hours ago`;
+  if (diffMin >= 1)
+    return diffMin === 1 ? "1 minute ago" : `${diffMin} minutes ago`;
+  return "Just now";
+}
+
 // 1. Core Fetcher with Client Safety
 async function fetchUserContributions() {
   const container = document.getElementById("contributions-container");
@@ -67,7 +106,8 @@ function renderContributions(items) {
 
     const thumbUrl = item.image_url || "images/placeholder-landscape.svg";
     const avatarUrl = item.author_avatar || "images/default-avatar.png";
-    const dateStr = new Date(item.created_at).toLocaleDateString();
+    const formattedViews = formatViewCount(item.views);
+    const relativeTime = formatRelativeTime(item.created_at);
 
     card.innerHTML = `
       <div class="yt-thumbnail">
@@ -94,9 +134,9 @@ function renderContributions(items) {
             }</span>
           </div>
           <div class="yt-meta-block">
-            <span class="yt-meta-views">${item.views || 0} views</span>
+            <span class="yt-meta-views">${formattedViews} views</span>
             <span class="yt-meta-separator">•</span>
-            <span class="yt-meta-date">${dateStr}</span>
+            <span class="yt-meta-date">${relativeTime}</span>
           </div>
         </div>
 

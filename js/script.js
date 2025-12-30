@@ -8,6 +8,45 @@ if (!supabaseClient) {
   console.error("Supabase Client is missing! Check script order in HTML.");
 }
 
+// Helper: Format view count like YouTube (1K, 1M, etc.)
+function formatViewCount(views) {
+  const num = Number(views) || 0;
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1) + "M";
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(num % 1000 === 0 ? 0 : 1) + "K";
+  }
+  return num.toString();
+}
+
+// Helper: Relative time like YouTube ("1 hour ago", "2 days ago")
+function formatRelativeTime(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHour = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHour / 24);
+  const diffWeek = Math.floor(diffDay / 7);
+  const diffMonth = Math.floor(diffDay / 30);
+  const diffYear = Math.floor(diffDay / 365);
+
+  if (diffYear >= 1)
+    return diffYear === 1 ? "1 year ago" : `${diffYear} years ago`;
+  if (diffMonth >= 1)
+    return diffMonth === 1 ? "1 month ago" : `${diffMonth} months ago`;
+  if (diffWeek >= 1)
+    return diffWeek === 1 ? "1 week ago" : `${diffWeek} weeks ago`;
+  if (diffDay >= 1) return diffDay === 1 ? "1 day ago" : `${diffDay} days ago`;
+  if (diffHour >= 1)
+    return diffHour === 1 ? "1 hour ago" : `${diffHour} hours ago`;
+  if (diffMin >= 1)
+    return diffMin === 1 ? "1 minute ago" : `${diffMin} minutes ago`;
+  return "Just now";
+}
+
 let allBlogs = [];
 
 // 1. Auth State Listener
@@ -34,7 +73,11 @@ async function loadFragments() {
       setupVoiceSearch();
       initHamburger();
       setupMobileSearch();
-      setupSearchSuggestions(); // Ensure this is called here
+      setupSearchSuggestions();
+      // Initialize Notification System
+      setTimeout(() => {
+        if (window.NotificationSystem) window.NotificationSystem.init();
+      }, 100);
       updateUI();
     } catch (err) {
       console.error("Failed to load header:", err);
@@ -135,12 +178,14 @@ function renderBlogs(blogs, profilesMap = {}) {
     const avatarUrl =
       profile?.avatar_url ||
       `https://ui-avatars.com/api/?name=${authorName}&background=random&color=fff`;
+    const formattedViews = formatViewCount(blog.views);
+    const relativeTime = formatRelativeTime(blog.created_at);
 
     const card = document.createElement("div");
     card.className = "yt-card";
     card.innerHTML = `
             <div class="yt-thumbnail">
-                <img src="${imgSrc}" alt="Thumbnail" loading="lazy" onerror="this.onerror=null;this.src='images/placeholder-landscape.svg';">
+                <img src="${imgSrc}" alt="Thumbnail" onerror="this.onerror=null;this.src='images/placeholder-landscape.svg';">
             </div>
             <div class="yt-card-info">
                 <div class="yt-author-avatar">
@@ -150,40 +195,28 @@ function renderBlogs(blogs, profilesMap = {}) {
                     <div class="title-row" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;">
                         <h3 class="yt-title">${blog.title}</h3>
                         <div class="menu-container" style="position: relative;">
-                            <button class="menu-dots-btn" onclick="toggleCardMenu(event, '${
-                              blog.id
-                            }')">
+                            <button class="menu-dots-btn" onclick="toggleCardMenu(event, '${blog.id}')">
                                 <span class="material-icons">more_vert</span>
                             </button>
                             <div id="menu-${blog.id}" class="card-action-menu">
-                                <button onclick="shareArticle(event, '${
-                                  blog.id
-                                }')" class="menu-action">
+                                <button onclick="shareArticle(event, '${blog.id}')" class="menu-action">
                                     <span class="material-icons">share</span> Share
                                 </button>
-                                <button onclick="followArticle(event, '${
-                                  blog.id
-                                }')" class="menu-action">
+                                <button onclick="followArticle(event, '${blog.id}')" class="menu-action">
                                     <span class="material-icons">person_add</span> Follow
                                 </button>
-                                <button onclick="reportArticle(event, '${
-                                  blog.id
-                                }')" class="menu-action">
+                                <button onclick="reportArticle(event, '${blog.id}')" class="menu-action">
                                     <span class="material-icons">flag</span> Report
                                 </button>
                                 <div class="menu-divider"></div>
-                                <button onclick="hideArticle(event, '${
-                                  blog.id
-                                }')" class="menu-action">
+                                <button onclick="hideArticle(event, '${blog.id}')" class="menu-action">
                                     <span class="material-icons">visibility_off</span> Hide
                                 </button>
                             </div>
                         </div>
                     </div>
                     <p class="yt-meta-author">${authorName}</p>
-                    <p class="yt-meta-stats">KGR Archive • ${new Date(
-                      blog.created_at
-                    ).toLocaleDateString()}</p>
+                    <p class="yt-meta-stats">${formattedViews} views • ${relativeTime}</p>
                 </div>
             </div>
         `;
@@ -262,22 +295,98 @@ function reportArticle(event, id) {
   modal.style.display = "flex";
 }
 
-function hideArticle(event, id) {
+async function hideArticle(event, id) {
   event.preventDefault();
   event.stopPropagation();
+
+  // Close menu
+  document
+    .querySelectorAll(".card-action-menu")
+    .forEach((m) => m.classList.remove("show"));
+
+  // Save to localStorage for immediate effect
   const hiddenBlogs = JSON.parse(localStorage.getItem("hiddenBlogs") || "[]");
   if (!hiddenBlogs.includes(id)) {
     hiddenBlogs.push(id);
     localStorage.setItem("hiddenBlogs", JSON.stringify(hiddenBlogs));
   }
-  // Refresh the blogs
+
+  // Save to database if user is logged in
+  if (window.currentUser) {
+    try {
+      // Get current hidden_blogs array from profile
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("hidden_blogs")
+        .eq("id", window.currentUser.id)
+        .single();
+
+      const currentHidden = profile?.hidden_blogs || [];
+      if (!currentHidden.includes(id)) {
+        currentHidden.push(id);
+        await supabaseClient
+          .from("profiles")
+          .update({ hidden_blogs: currentHidden })
+          .eq("id", window.currentUser.id);
+      }
+    } catch (err) {
+      console.log(
+        "Could not save to profile, using localStorage:",
+        err.message
+      );
+    }
+  }
+
+  showToast("Article hidden from your feed", "success");
   fetchBlogs();
 }
 
-function followArticle(event, id) {
+async function followArticle(event, id) {
   event.preventDefault();
   event.stopPropagation();
-  alert("Followed the author!");
+
+  // Close menu
+  document
+    .querySelectorAll(".card-action-menu")
+    .forEach((m) => m.classList.remove("show"));
+
+  if (!window.currentUser) {
+    showToast("Sign in to follow authors", "info");
+    return;
+  }
+
+  // Find the article to get author info
+  const article = allBlogs.find((b) => b.id === id);
+  if (!article || !article.user_id) {
+    showToast("Could not follow author", "error");
+    return;
+  }
+
+  try {
+    // Get current followed_users array from profile
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("followed_users")
+      .eq("id", window.currentUser.id)
+      .single();
+
+    const currentFollowed = profile?.followed_users || [];
+    if (currentFollowed.includes(article.user_id)) {
+      showToast("Already following this author", "info");
+      return;
+    }
+
+    currentFollowed.push(article.user_id);
+    await supabaseClient
+      .from("profiles")
+      .update({ followed_users: currentFollowed })
+      .eq("id", window.currentUser.id);
+
+    showToast("Following " + (article.author || "author") + "!", "success");
+  } catch (err) {
+    console.error("Follow error:", err);
+    showToast("Could not follow author", "error");
+  }
 }
 
 function closeReportModal() {
@@ -285,16 +394,71 @@ function closeReportModal() {
   if (modal) modal.style.display = "none";
 }
 
-function submitReport(id) {
+async function submitReport(id) {
   const reason = document.getElementById("report-reason").value;
   const details = document.getElementById("report-details").value;
+
   if (!reason) {
-    alert("Please select a reason for reporting.");
+    showToast("Please select a reason for reporting", "error");
     return;
   }
-  // Here you could send the report to the server
-  alert("Report submitted. Thank you for helping keep KGR Archive safe.");
+
+  try {
+    // Try to save report to database
+    if (window.currentUser) {
+      await supabaseClient.from("reports").insert([
+        {
+          blog_id: id,
+          user_id: window.currentUser.id,
+          reason: reason,
+          details: details,
+          created_at: new Date().toISOString(),
+        },
+      ]);
+    }
+  } catch (err) {
+    // Reports table might not exist, that's okay
+    console.log("Report logged locally:", { id, reason, details });
+  }
+
   closeReportModal();
+  showToast(
+    "Report submitted. Thank you for helping keep KGR Archive safe.",
+    "success"
+  );
+}
+
+// Toast notification system
+function showToast(message, type = "info") {
+  // Remove existing toast
+  const existingToast = document.querySelector(".kgr-toast");
+  if (existingToast) existingToast.remove();
+
+  const toast = document.createElement("div");
+  toast.className = `kgr-toast kgr-toast-${type}`;
+
+  const icons = {
+    success: "check_circle",
+    error: "error",
+    info: "info",
+    warning: "warning",
+  };
+
+  toast.innerHTML = `
+    <span class="material-icons">${icons[type] || "info"}</span>
+    <span>${message}</span>
+  `;
+
+  document.body.appendChild(toast);
+
+  // Trigger animation
+  setTimeout(() => toast.classList.add("show"), 10);
+
+  // Auto remove
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
 
 // Close menus when clicking outside
@@ -631,6 +795,13 @@ async function updateUI() {
       document.getElementById("dropdown-profile-img").src = avatarUrl;
     if (drawerSettings) drawerSettings.style.display = "block";
 
+    // 6.5 Show Admin Link for Admin Users
+    const ADMIN_EMAILS = ["khushaankgupta@gmail.com"]; // Admin whitelist
+    const adminLink = document.getElementById("admin-link");
+    if (adminLink && ADMIN_EMAILS.includes(user.email)) {
+      adminLink.style.display = "flex";
+    }
+
     // 7. Setup Sign Out
     const signOutBtn = document.getElementById("sign-out-btn");
     if (signOutBtn) {
@@ -865,3 +1036,11 @@ function setupBackToTop() {
     });
   };
 }
+
+// 13. Notification System Bridge
+function toggleNotifications() {
+  if (window.NotificationSystem) {
+    window.NotificationSystem.togglePanel();
+  }
+}
+// initNotifications and loadMockNotifications removed.

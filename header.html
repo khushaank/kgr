@@ -36,7 +36,7 @@
         <input
           type="text"
           id="search-bar"
-          placeholder="Search research papers or 'Ask' a question..."
+          placeholder="Search research papers..."
           autocomplete="off"
         />
         <span
@@ -75,6 +75,48 @@
     >
       <span class="material-icons">video_call</span>
     </button>
+
+    <!-- Notification Bell -->
+    <div
+      class="notification-wrapper"
+      id="notification-wrapper"
+      style="display: none"
+    >
+      <button
+        id="notification-btn"
+        class="icon-btn notification-btn"
+        onclick="toggleNotifications()"
+      >
+        <span class="material-icons">notifications</span>
+        <span
+          class="notification-badge"
+          id="notification-badge"
+          style="display: none"
+          >0</span
+        >
+      </button>
+
+      <!-- Notification Dropdown Panel -->
+      <div id="notification-panel" class="notification-panel">
+        <div class="notification-header">
+          <span>Notifications</span>
+          <button
+            class="notif-settings-btn"
+            onclick="window.location.href='settings.html'"
+          >
+            <span class="material-icons">settings</span>
+          </button>
+        </div>
+        <div class="notification-list" id="notification-list">
+          <!-- Populated by JS -->
+          <div class="notification-empty">
+            <span class="material-icons">notifications_none</span>
+            <p>No new notifications</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="profile-btn" class="profile-btn">
       <span class="material-icons" id="nav-profile-placeholder"
         >account_circle</span
