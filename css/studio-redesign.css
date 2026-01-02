@@ -1,0 +1,275 @@
+/* =========================
+   YouTube Studio "Clean" Redesign
+   Target: Professional, Flat, accessible.
+   Responsive to Global Themes (Black, Grey, White).
+========================= */
+
+/* 
+   We map the abstract 'yt' variables to the global theme variables 
+   defined in style.css. This ensures that when body.theme-white 
+   or body.theme-grey-scale is active, these update automatically.
+*/
+body {
+  --yt-bg: var(--bg);
+  --yt-surface: var(--card-bg);
+  --yt-border: var(--card-border);
+  --yt-input-bg: var(--input-bg);
+  --yt-input-border: var(--input-border);
+  --yt-blue: var(--accent);
+  --yt-text-primary: var(--text);
+  --yt-text-secondary: var(--meta);
+  --yt-hover: rgba(128, 128, 128, 0.1); /* Adaptive hover */
+  --yt-radius: 4px;
+}
+
+/* Reset tweaks for this theme */
+body {
+  background-color: var(--yt-bg);
+  color: var(--yt-text-primary);
+  font-family: "Roboto", "Arial", sans-serif;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* Layout overrides */
+.studio-layout {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 24px;
+}
+
+/* Card - Flat */
+.studio-card {
+  background: var(--yt-surface) !important;
+  border: 1px solid var(--yt-border) !important; /* Borders are good for white theme separation */
+  border-radius: var(--yt-radius) !important;
+  box-shadow: none !important; /* Flat look is cleaner for responsive themes */
+  padding: 24px !important;
+  margin-bottom: 24px;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Typography */
+.studio-card label {
+  color: var(--yt-text-secondary) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  margin-bottom: 8px !important;
+  text-transform: none !important;
+}
+
+/* Inputs */
+.studio-card input,
+.studio-card textarea,
+.studio-input,
+#source-view {
+  background: var(--yt-input-bg) !important;
+  border: 1px solid var(--yt-input-border) !important;
+  border-radius: var(--yt-radius) !important;
+  color: var(--yt-text-primary) !important;
+  padding: 10px 12px !important;
+  font-size: 15px !important;
+  font-family: "Roboto", sans-serif !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s;
+}
+
+.studio-card input:focus,
+.studio-card textarea:focus,
+.studio-input:focus,
+#source-view:focus {
+  border-color: var(--yt-blue) !important;
+  outline: none !important;
+}
+
+/* Editor Header */
+.editor-header-flex {
+  border-bottom: 1px solid var(--yt-border);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-left label {
+  margin-bottom: 0 !important;
+}
+
+.autosave-text {
+  font-size: 0.85rem;
+  color: var(--yt-text-secondary);
+  font-style: italic;
+  display: flex;
+  align-items: center;
+}
+
+.autosave-text::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  background: var(--yt-text-secondary);
+  border-radius: 50%;
+  margin-right: 8px;
+  display: inline-block;
+}
+
+/* Source Mode Toggle Button */
+.toggle-btn {
+  background: transparent;
+  color: var(--yt-text-secondary);
+  border: 1px solid var(--yt-border);
+  padding: 6px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+  background: var(--yt-hover);
+  color: var(--yt-text-primary);
+}
+
+.toggle-btn.active {
+  background: rgba(62, 166, 255, 0.1);
+  color: var(--yt-blue);
+  border-color: var(--yt-blue);
+}
+
+/* Editor Toolbar */
+.editor-toolbar {
+  background: transparent;
+  border-bottom: 1px solid var(--yt-border);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+}
+
+.toolbar-group {
+  gap: 4px;
+}
+
+.editor-toolbar button {
+  width: 32px;
+  height: 32px;
+  color: var(--yt-text-secondary);
+  border-radius: 2px !important;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.editor-toolbar button:hover {
+  background: var(--yt-hover) !important;
+  color: var(--yt-text-primary);
+}
+
+/* Main Editor Area */
+#formatted-view {
+  background: transparent !important;
+  border: none !important;
+  padding: 10px 0 !important;
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  color: var(--yt-text-primary);
+  min-height: 400px;
+  outline: none !important;
+  caret-color: var(--yt-blue);
+}
+
+#formatted-view[contenteditable="true"]:empty:before {
+  content: attr(placeholder);
+  color: var(--yt-text-secondary);
+  opacity: 0.6;
+  display: block;
+}
+
+#formatted-view blockquote {
+  border-left: 3px solid var(--yt-text-secondary);
+  color: var(--yt-text-secondary);
+  padding-left: 16px;
+}
+
+/* Sidebar Elements */
+.chip-container {
+  background: var(--yt-input-bg) !important;
+  border: 1px solid var(--yt-input-border) !important;
+  border-radius: var(--yt-radius) !important;
+}
+
+.tag-chip {
+  background: var(--yt-surface) !important;
+  border: 1px solid var(--yt-border) !important;
+  color: var(--yt-text-secondary) !important;
+}
+
+/* Header / Nav */
+.create-nav {
+  background: var(--yt-surface) !important;
+  border-bottom: 1px solid var(--yt-border) !important;
+  box-shadow: none; /* Flat usually looks better in multi-theme */
+}
+
+.create-nav h1 {
+  font-size: 1.2rem !important;
+  color: var(--yt-text-primary);
+}
+
+/* Buttons */
+#main-save-btn {
+  background: var(--yt-blue) !important;
+  border-radius: 2px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase;
+  font-size: 14px;
+  height: 36px !important;
+  color: #fff !important; /* Always white text on accent button? Yes usually */
+}
+
+/* Wait, if accent is white in grey theme, text should be black? 
+   In style.css, accent is #ffffff in grey theme. 
+   White text on white bg is bad. 
+   I should check style.css accent-inverse or similar.
+   style.css defines --accent but not accent-text-color.
+   I'll assume white text is fine for Blue/Green/Red, but for White accent...
+   Let's check style.css again. 
+   Grey theme accent is #ffffff. 
+   So #main-save-btn background will be White. Text must be black.
+   I need a text color variable for buttons.
+   I'll use var(--text-inverse) which exists in style.css!
+*/
+
+#main-save-btn {
+  color: var(--text-inverse) !important;
+}
+
+#main-save-btn:hover {
+  filter: brightness(1.1);
+}
+
+.dropdown-trigger {
+  background: var(--yt-blue) !important;
+  border-radius: 2px !important;
+  border-left: 1px solid rgba(0, 0, 0, 0.1) !important;
+  height: 36px !important;
+  color: var(--text-inverse) !important;
+}
+
+/* Remove effects */
+.studio-card::before {
+  display: none !important;
+}

@@ -287,7 +287,7 @@ function closeDeleteModal() {
 function editArticle(event, id) {
   event.preventDefault();
   event.stopPropagation();
-  window.location.href = `create.html?id=${id}`;
+  window.location.href = `edit.html?id=${id}`;
 }
 
 function shareArticle(event, id) {

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>New Entry | KGR Research Studio</title>
+    <title>Edit Research | KGR Research Studio</title>
     <link rel="icon" type="image/png" href="images/KGR.png" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/studio-redesign.css" />
@@ -17,18 +17,18 @@
       <div class="nav-left">
         <span
           class="material-icons close-icon"
-          onclick="window.location.href='index.html'"
+          onclick="window.location.href='contributions.html'"
           >close</span
         >
-        <h1 class="mono">Research Studio</h1>
+        <h1 class="mono">Research Studio <span class="badge">EDIT</span></h1>
       </div>
       <div class="action-buttons">
         <div class="publish-split-container">
-          <button id="main-save-btn">Publish</button>
+          <button id="main-save-btn">Update Research</button>
           <div class="dropdown-trigger" id="save-dropdown-trigger">
             <span class="material-icons">arrow_drop_down</span>
             <div class="save-status-dropdown" id="save-status-dropdown">
-              <button data-status="published">Publish Now</button>
+              <button data-status="published">Update & Publish</button>
               <button data-status="draft">Save as Draft</button>
             </div>
           </div>
@@ -179,13 +179,6 @@
           <div id="tag-count-indicator" class="tag-limit-indicator">
             0/3 tags used
           </div>
-          <button
-            id="show-trending-btn"
-            class="secondary-btn"
-            style="margin-top: 10px"
-          >
-            Show Trending
-          </button>
         </div>
 
         <div class="studio-card">
@@ -204,6 +197,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
-    <script src="js/create.js"></script>
+    <script src="js/edit.js"></script>
   </body>
 </html>
